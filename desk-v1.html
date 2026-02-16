@@ -23,8 +23,8 @@
 
         /* Estilo Translúcido y Colapsable */
         .control-box {
-            background: rgba(255, 255, 255, 0.65); /* Translúcido */
-            backdrop-filter: blur(10px); /* Desenfoque de fondo */
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.4);
             border-radius: 12px;
@@ -47,19 +47,9 @@
             align-items: center;
             user-select: none;
         }
-
         summary::-webkit-details-marker { display: none; }
-        
-        summary::after {
-            content: '▼';
-            font-size: 10px;
-            transition: transform 0.3s;
-            opacity: 0.5;
-        }
-
-        details[open] summary::after {
-            transform: rotate(180deg);
-        }
+        summary::after { content: '▼'; font-size: 10px; transition: transform 0.3s; opacity: 0.5; }
+        details[open] summary::after { transform: rotate(180deg); }
 
         .content {
             padding: 0 15px 15px 15px;
@@ -104,8 +94,6 @@
     </style>
 </head>
 <body>
-    <div id="info"></div>
-    
     <div id="controls-ui">
         <!-- Visualización -->
         <details class="control-box" open>
@@ -117,9 +105,13 @@
         </details>
 
         <!-- Panel de Accesorios -->
-        <details class="control-box">
+        <details class="control-box" open>
             <summary>🖥️ ACCESORIOS</summary>
             <div class="content">
+                <div class="item-toggle">
+                    <span>Silla Gerencial</span>
+                    <input type="checkbox" id="check-chair" onchange="updateItems()">
+                </div>
                 <div class="item-toggle">
                     <span>MacBook Pro</span>
                     <input type="checkbox" id="check-laptop" onchange="updateItems()">
@@ -173,7 +165,7 @@
         scene.background = new THREE.Color(0xf5f5f5);
 
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 2000);
-        camera.position.set(-180, 110, -180); 
+        camera.position.set(-250, 180, -250); 
 
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -188,16 +180,23 @@
         controls.maxPolarAngle = Math.PI - 0.1;
 
         scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+        
+        // CORRECCIÓN DE SOMBRAS Y LUZ
         const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
-        dirLight.position.set(-50, 150, -50);
+        dirLight.position.set(-80, 200, -80);
         dirLight.castShadow = true;
         dirLight.shadow.mapSize.set(2048, 2048);
+        dirLight.shadow.camera.left = -200;
+        dirLight.shadow.camera.right = 200;
+        dirLight.shadow.camera.top = 200;
+        dirLight.shadow.camera.bottom = -200;
+        dirLight.shadow.camera.far = 1000;
         scene.add(dirLight);
 
         // --- Materiales ---
         const woodMaterials = {
             black: { color: 0x111111, roughness: 0.9 },
-            wenge: { color: 0x221a15, roughness: 0.8 }, // Marrón muy oscuro casi negro
+            wenge: { color: 0x221a15, roughness: 0.8 },
             oak: { color: 0xE0C9A6, roughness: 0.6 },
             walnut: { color: 0x5C4033, roughness: 0.7 },
             mahogany: { color: 0x420D09, roughness: 0.6 },
@@ -209,9 +208,9 @@
         };
 
         const woodMaterial = new THREE.MeshStandardMaterial({ color: woodMaterials.black.color, roughness: 0.9, side: THREE.DoubleSide });
-        const metalBlackMaterial = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.5, metalness: 0.7, side: THREE.DoubleSide });
+        const metalBlackMaterial = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.5, metalness: 0.7 });
         const silverMaterial = new THREE.MeshStandardMaterial({ color: 0xbbbbbb, roughness: 0.3, metalness: 0.8 });
-        const screenMaterial = new THREE.MeshStandardMaterial({ color: 0x050505, roughness: 0.1 });
+        const leatherMaterial = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.8 });
         const trayMaterial = new THREE.MeshStandardMaterial({ color: 0x2a2a2a, roughness: 0.5, metalness: 0.6, side: THREE.DoubleSide });
         const cableMaterial = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.8 });
         const socketMaterial = new THREE.MeshStandardMaterial({ color: 0xdddddd });
@@ -236,7 +235,7 @@
         const userPlankDepth = 55, backPlankDepth = 24, cableGapDepth = 1.0;
         const deskTopY = deskHeight;
 
-        // --- Maderas ---
+        // --- Estructura Madera ---
         const userPlank = new THREE.Mesh(new THREE.BoxGeometry(deskWidth, woodThick, userPlankDepth), woodMaterial);
         userPlank.position.set(0, deskTopY - woodThick/2, -(deskDepth/2) + (userPlankDepth/2));
         userPlank.castShadow = true; userPlank.receiveShadow = true;
@@ -250,34 +249,24 @@
         const tilt = Math.atan(10/75);
         const fMonitorG = new THREE.Group(); fMonitorG.position.set(0, 75, 40); fMonitorG.rotation.x = tilt; 
         const fMonitor = new THREE.Mesh(new THREE.BoxGeometry(deskWidth, 20, woodThick), woodMaterial);
-        fMonitor.position.set(0, -10, woodThick/2); fMonitorG.add(fMonitor); 
-        surfaceGroup.add(fMonitorG);
+        fMonitor.position.set(0, -10, woodThick/2); fMonitorG.add(fMonitor); surfaceGroup.add(fMonitorG);
 
         const fUserG = new THREE.Group(); fUserG.position.set(0, 75, -40); fUserG.rotation.x = -tilt; 
         const fUser = new THREE.Mesh(new THREE.BoxGeometry(deskWidth, 10, woodThick), woodMaterial);
-        fUser.position.set(0, -5, -woodThick/2); fUserG.add(fUser); 
-        surfaceGroup.add(fUserG);
+        fUser.position.set(0, -5, -woodThick/2); fUserG.add(fUser); surfaceGroup.add(fUserG);
 
-        // --- Bandeja Técnica en J ---
+        // --- Bandeja Técnica ---
         const gapZ = -(deskDepth/2) + userPlankDepth + (cableGapDepth/2);
         const trayProfile = new THREE.Shape();
         const th = 0.4, trayDepthVal = 16, highWall = 10, lowWall = 4;   
-
-        trayProfile.moveTo(-trayDepthVal/2, highWall);   
-        trayProfile.lineTo(-trayDepthVal/2, 0);          
-        trayProfile.lineTo(trayDepthVal/2, 0);           
-        trayProfile.lineTo(trayDepthVal/2, lowWall);     
-        trayProfile.lineTo(trayDepthVal/2 - th, lowWall); 
-        trayProfile.lineTo(trayDepthVal/2 - th, th);      
-        trayProfile.lineTo(-trayDepthVal/2 + th, th);     
-        trayProfile.lineTo(-trayDepthVal/2 + th, highWall); 
+        trayProfile.moveTo(-trayDepthVal/2, highWall); trayProfile.lineTo(-trayDepthVal/2, 0); trayProfile.lineTo(trayDepthVal/2, 0); trayProfile.lineTo(trayDepthVal/2, lowWall);     
+        trayProfile.lineTo(trayDepthVal/2 - th, lowWall); trayProfile.lineTo(trayDepthVal/2 - th, th); trayProfile.lineTo(-trayDepthVal/2 + th, th); trayProfile.lineTo(-trayDepthVal/2 + th, highWall); 
         trayProfile.closePath(); 
-
         const trayGeo = new THREE.ExtrudeGeometry(trayProfile, { depth: innerGap, bevelEnabled: false });
         trayGeo.center();
         const tray = new THREE.Mesh(trayGeo, trayMaterial);
         tray.rotation.y = Math.PI/2; 
-        tray.position.set(0, deskTopY - woodThick - (highWall/2), gapZ);
+        tray.position.set(0, deskTopY - woodThick - (highWall/2) - 0.2, gapZ);
         tray.castShadow = true; tray.receiveShadow = true;
         deskGroup.add(tray);
 
@@ -289,22 +278,15 @@
             for(let i=0; i<2; i++){
                 const xOff = (i === 0) ? -3 : 3;
                 const hole = new THREE.Mesh(new THREE.CircleGeometry(1.2, 16), socketHoleMaterial);
-                hole.position.set(xOff, 0, 1.01);
-                group.add(hole);
-                const center = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 0.1), socketHoleMaterial);
-                center.position.set(xOff, 0, 1.02);
-                group.add(center);
+                hole.position.set(xOff, 0, 1.05); group.add(hole);
             }
             group.rotation.x = -Math.PI / 2;
             return group;
         }
-
-        const trayBottomY = deskTopY - woodThick - highWall + 1.0;
+        const trayBottomY = deskTopY - woodThick - highWall + 1.2; 
         const posLeft = -50, posCenter = 0, posRight = 50;
         [posLeft, posCenter, posRight].forEach(x => {
-            const pair = createSocketPair();
-            pair.position.set(x, trayBottomY, gapZ);
-            deskGroup.add(pair);
+            const pair = createSocketPair(); pair.position.set(x, trayBottomY, gapZ); deskGroup.add(pair);
         });
 
         // --- Patas ---
@@ -325,18 +307,21 @@
         const l2 = createLeg(); l2.rotation.y = Math.PI/2; l2.position.set(legOffset, (deskHeight-woodThick)/2, 0); deskGroup.add(l2);
 
         // --- Cableado ---
-        const trayRightEnd = new THREE.Vector3(innerGap/2 - 2, trayBottomY, gapZ);
-        const legTopBackEntry = new THREE.Vector3(legOffset, deskTopY - woodThick - 5, gapZ);
-        const legTopFrontCorner = new THREE.Vector3(legOffset, deskTopY - woodThick - 5, -35);
-        const legBottomFrontExit = new THREE.Vector3(legOffset, 0.4, -35); 
-        const socketPos = new THREE.Vector3(legOffset + 25, 0.4, -65); 
-        const cableCurve = new THREE.CatmullRomCurve3([trayRightEnd, legTopBackEntry, legTopFrontCorner, new THREE.Vector3(legOffset, deskHeight/2, -35), legBottomFrontExit, new THREE.Vector3(legOffset + 5, 0.4, -45), socketPos]);
+        const trayRightEnd = new THREE.Vector3(innerGap/2 - 2, trayBottomY - 0.5, gapZ - 2);
+        const cableCurve = new THREE.CatmullRomCurve3([
+            new THREE.Vector3(posLeft - 10, trayBottomY - 0.5, gapZ - 2),
+            new THREE.Vector3(posCenter, trayBottomY - 0.5, gapZ - 2), 
+            new THREE.Vector3(posRight, trayBottomY - 0.5, gapZ - 2),  
+            trayRightEnd,
+            new THREE.Vector3(legOffset, deskTopY - woodThick - 5, gapZ),
+            new THREE.Vector3(legOffset, deskTopY - woodThick - 5, -35),
+            new THREE.Vector3(legOffset, deskHeight/2, -35), 
+            new THREE.Vector3(legOffset, 0.4, -35), 
+            new THREE.Vector3(legOffset + 5, 0.4, -45), 
+            new THREE.Vector3(legOffset + 25, 0.4, -65)
+        ]);
         const cableTube = new THREE.Mesh(new THREE.TubeGeometry(cableCurve, 100, 0.4, 8, false), cableMaterial);
-        cableTube.castShadow = true;
-        deskGroup.add(cableTube);
-
-        // --- UI ---
-        window.toggleSurface = () => { surfaceGroup.visible = !surfaceGroup.visible; };
+        cableTube.castShadow = true; deskGroup.add(cableTube);
 
         // --- Accesorios ---
         function createMacBook() {
@@ -349,17 +334,16 @@
             lidPivot.position.set(0, 1, 12); 
             const lid = new THREE.Mesh(new THREE.BoxGeometry(34, 0.6, 24), silverMaterial);
             lid.position.set(0, 0, -12); lidPivot.add(lid);
-            const screen = new THREE.Mesh(new THREE.BoxGeometry(32, 22, 0.1), screenMaterial);
+            const screen = new THREE.Mesh(new THREE.BoxGeometry(32, 22, 0.1), new THREE.MeshStandardMaterial({ color: 0x050505, roughness: 0.1 }));
             screen.rotation.x = Math.PI / 2; screen.position.set(0, -0.35, -12); lidPivot.add(screen);
-            lidPivot.rotation.x = Math.PI / 2.2;
-            group.add(lidPivot);
+            lidPivot.rotation.x = Math.PI / 2.2; group.add(lidPivot);
             return group;
         }
 
         function createMonitor(withArm) {
             const g = new THREE.Group();
             const screen = new THREE.Mesh(new THREE.BoxGeometry(60, 35, 2), silverMaterial);
-            const display = new THREE.Mesh(new THREE.BoxGeometry(58, 33, 0.2), screenMaterial);
+            const display = new THREE.Mesh(new THREE.BoxGeometry(58, 33, 0.2), new THREE.MeshStandardMaterial({ color: 0x050505 }));
             display.position.z = -1.1; screen.add(display);
             if (withArm) {
                 const arm = new THREE.Group();
@@ -368,15 +352,45 @@
                 const p1 = new THREE.Mesh(new THREE.BoxGeometry(4, 25, 4), metalBlackMaterial);
                 p1.position.y = 12.5;
                 const p2 = new THREE.Mesh(new THREE.BoxGeometry(4, 4, 25), metalBlackMaterial);
-                p2.position.set(0, 25, -12);
-                arm.add(baseClamp, p1, p2);
-                arm.position.set(0, 0, deskDepth/2 - 5);
-                screen.position.set(0, 25, deskDepth/2 - 30);
-                g.add(arm, screen);
+                p2.position.set(0, 25, -12); arm.add(baseClamp, p1, p2);
+                arm.position.set(0, 0, 35); screen.position.set(0, 25, 10); g.add(arm, screen);
             } else {
-                g.add(new THREE.Mesh(new THREE.BoxGeometry(20, 1, 15), silverMaterial), new THREE.Mesh(new THREE.BoxGeometry(4, 20, 2), silverMaterial), screen);
-                screen.position.y = 25; g.position.z = 25;
+                const neck = new THREE.Mesh(new THREE.BoxGeometry(4, 20, 2), silverMaterial);
+                neck.position.y = 10; screen.position.y = 25;
+                g.add(new THREE.Mesh(new THREE.BoxGeometry(20, 1, 15), silverMaterial), neck, screen);
+                g.position.z = 25;
             }
+            return g;
+        }
+
+        function createChair() {
+            const g = new THREE.Group();
+            // Base estrella
+            const baseCenter = new THREE.Mesh(new THREE.CylinderGeometry(3, 4, 2, 8), metalBlackMaterial);
+            baseCenter.position.y = 5; g.add(baseCenter);
+            for(let i=0; i<5; i++){
+                const leg = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 25), metalBlackMaterial);
+                leg.position.set(Math.sin(i*1.25)*12, 4, Math.cos(i*1.25)*12);
+                leg.rotation.y = i*1.25; g.add(leg);
+                const wheel = new THREE.Mesh(new THREE.SphereGeometry(2, 8, 8), leatherMaterial);
+                wheel.position.set(Math.sin(i*1.25)*25, 2, Math.cos(i*1.25)*25); g.add(wheel);
+            }
+            // Piston
+            const piston = new THREE.Mesh(new THREE.CylinderGeometry(2, 2, 20, 16), silverMaterial);
+            piston.position.y = 15; g.add(piston);
+            // Asiento
+            const seat = new THREE.Mesh(new THREE.BoxGeometry(45, 8, 45), leatherMaterial);
+            seat.position.y = 28; g.add(seat);
+            // Respaldo
+            const back = new THREE.Mesh(new THREE.BoxGeometry(45, 60, 8), leatherMaterial);
+            back.position.set(0, 55, 22); back.rotation.x = -0.1; g.add(back);
+            // Brazos
+            for(let i=0; i<2; i++){
+                const side = i === 0 ? -25 : 25;
+                const arm = new THREE.Mesh(new THREE.BoxGeometry(4, 15, 20), leatherMaterial);
+                arm.position.set(side, 38, 0); g.add(arm);
+            }
+            g.traverse(n => { if(n.isMesh) { n.castShadow = true; n.receiveShadow = true; }});
             return g;
         }
 
@@ -392,6 +406,12 @@
 
         window.updateItems = () => {
             while(itemsGroup.children.length > 0) itemsGroup.remove(itemsGroup.children[0]);
+            if (document.getElementById('check-chair').checked) {
+                const chair = createChair();
+                chair.position.set(0, 0, -85);
+                chair.rotation.y = Math.PI; // CORRECCIÓN: Rotada 180° para mirar al escritorio
+                itemsGroup.add(chair);
+            }
             if (document.getElementById('check-laptop').checked) {
                 const laptop = createMacBook(); laptop.position.set(0, deskTopY, -15); itemsGroup.add(laptop);
             }
@@ -406,6 +426,7 @@
             }
         };
 
+        // --- Cotas ---
         const dimGroup = new THREE.Group();
         scene.add(dimGroup);
         function addDim(s, e, t, o) {
@@ -414,16 +435,25 @@
             const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
             canvas.width = 256; canvas.height = 64; ctx.font = "Bold 35px Arial"; ctx.fillStyle = "#cc0000"; ctx.textAlign = "center"; ctx.fillText(t, 128, 45);
             const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas), transparent: true }));
-            sprite.scale.set(20, 5, 1); sprite.position.copy(new THREE.Vector3().addVectors(p1, p2).multiplyScalar(0.5)); sprite.position.y += 3;
+            sprite.scale.set(16, 4, 1); sprite.position.copy(new THREE.Vector3().addVectors(p1, p2).multiplyScalar(0.5)); sprite.position.y += 2.5;
             dimGroup.add(new THREE.Group().add(line, sprite));
         }
         addDim(new THREE.Vector3(-90, 75, -40), new THREE.Vector3(90, 75, -40), "180 cm", new THREE.Vector3(0, 15, 0));
         addDim(new THREE.Vector3(90, 75, -40), new THREE.Vector3(90, 75, 40), "80 cm", new THREE.Vector3(15, 0, 0));
         addDim(new THREE.Vector3(90, 0, 40), new THREE.Vector3(90, 75, 40), "75 cm", new THREE.Vector3(15, 0, 0));
+        const dOffset = new THREE.Vector3(10, 5, 0);
+        addDim(new THREE.Vector3(90, 75, -40), new THREE.Vector3(90, 75, 15), "55 cm", dOffset);
+        addDim(new THREE.Vector3(90, 75, 15), new THREE.Vector3(90, 75, 16), "1 cm", dOffset);
+        addDim(new THREE.Vector3(90, 75, 16), new THREE.Vector3(90, 75, 40), "24 cm", dOffset);
+        addDim(new THREE.Vector3(-90, 72, -40), new THREE.Vector3(-90, 75, -40), "3 cm", new THREE.Vector3(-10, 0, 0));
+        addDim(new THREE.Vector3(0, 65, -40), new THREE.Vector3(0, 75, -40), "10 cm", new THREE.Vector3(0, 0, -5));
+        addDim(new THREE.Vector3(0, 55, 40), new THREE.Vector3(0, 75, 40), "20 cm", new THREE.Vector3(0, 0, 5));
         dimGroup.visible = false;
-        window.toggleDimensions = () => { dimGroup.visible = !dimGroup.visible; };
 
-        const ground = new THREE.Mesh(new THREE.PlaneGeometry(1000, 1000), new THREE.ShadowMaterial({ opacity: 0.1 }));
+        window.toggleDimensions = () => { dimGroup.visible = !dimGroup.visible; };
+        window.toggleSurface = () => { surfaceGroup.visible = !surfaceGroup.visible; };
+
+        const ground = new THREE.Mesh(new THREE.PlaneGeometry(2000, 2000), new THREE.ShadowMaterial({ opacity: 0.15 }));
         ground.rotation.x = -Math.PI/2; ground.receiveShadow = true; scene.add(ground);
 
         function animate() {
