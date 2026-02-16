@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Escritorio Industrial 3D - Sistema Eléctrico</title>
+    <title>Escritorio Industrial 3D - Setup Final</title>
     <style>
         body { margin: 0; overflow: hidden; background-color: #f0f0f0; font-family: sans-serif; }
         #info {
@@ -38,7 +38,7 @@
             backdrop-filter: blur(5px);
         }
         h3 { margin: 0 0 10px 0; font-size: 14px; color: #444; font-weight: 700; border-bottom: 1px solid #eee; padding-bottom: 5px; }
-
+        
         select, button {
             width: 100%;
             padding: 10px;
@@ -54,6 +54,12 @@
             transition: 0.2s;
         }
         button:hover, select:hover { background: #e9ecef; }
+        
+        .btn-toggle-view {
+            background: #eab308; 
+            color: #000;
+        }
+        .btn-toggle-view:hover { background: #ca8a04; }
 
         .item-toggle {
             display: flex;
@@ -70,10 +76,16 @@
 <body>
     <div id="info">
         <h2>Visualizador de Escritorio Industrial</h2>
-        <p>Cable por interior de pata, saliendo hacia el frente (lado silla)</p>
+        <p>Bandeja en "J" abierta (Sin cara superior) | Acceso lado usuario</p>
     </div>
-
+    
     <div id="controls-ui">
+        <div class="control-box">
+            <h3>🔍 Vista Estructural</h3>
+            <button class="btn-toggle-view" onclick="toggleSurface()">Ocultar/Mostrar Tapas</button>
+            <button onclick="toggleDimensions()">Ocultar/Mostrar Medidas</button>
+        </div>
+
         <div class="control-box">
             <h3>🖥️ Accesorios</h3>
             <div class="item-toggle">
@@ -114,9 +126,8 @@
         </div>
 
         <div class="control-box">
-            <button onclick="toggleDimensions()">Ocultar/Mostrar Medidas</button>
             <div class="help-text">
-                🖱️ Rotar | 🖱️ Mover | 🖱️ Zoom
+                🖱️ Rotar para ver interior | 🖱️ Zoom
             </div>
         </div>
     </div>
@@ -125,12 +136,11 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
     <script>
-        // --- Escena Básica ---
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0xf5f5f5);
 
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 2000);
-        camera.position.set(-180, 160, -180);
+        camera.position.set(-180, 110, -180); 
 
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -144,7 +154,6 @@
         controls.dampingFactor = 0.05;
         controls.maxPolarAngle = Math.PI - 0.1;
 
-        // Luces
         scene.add(new THREE.AmbientLight(0xffffff, 0.7));
         const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
         dirLight.position.set(-50, 150, -50);
@@ -153,7 +162,6 @@
         dirLight.shadow.mapSize.height = 2048;
         scene.add(dirLight);
 
-        // --- Materiales ---
         const woodMaterials = {
             black: { color: 0x111111, roughness: 0.9 },
             oak: { color: 0xE0C9A6, roughness: 0.6 },
@@ -170,6 +178,7 @@
         const metalBlackMaterial = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.5, metalness: 0.7, side: THREE.DoubleSide });
         const silverMaterial = new THREE.MeshStandardMaterial({ color: 0xbbbbbb, roughness: 0.3, metalness: 0.8 });
         const screenMaterial = new THREE.MeshStandardMaterial({ color: 0x050505, roughness: 0.1 });
+        const trayMaterial = new THREE.MeshStandardMaterial({ color: 0x2a2a2a, roughness: 0.5, metalness: 0.6, side: THREE.DoubleSide });
         const cableMaterial = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.8 });
 
         window.changeWood = (type) => {
@@ -180,45 +189,83 @@
         const deskGroup = new THREE.Group();
         scene.add(deskGroup);
 
+        const surfaceGroup = new THREE.Group();
+        deskGroup.add(surfaceGroup);
+        
         const itemsGroup = new THREE.Group();
-        deskGroup.add(itemsGroup);
+        surfaceGroup.add(itemsGroup); 
 
-        // --- Estructura del Escritorio ---
         const deskWidth = 180, deskDepth = 80, deskHeight = 75, woodThick = 3.0, legThickness = 10;
-        const woodWidthTotal = deskWidth;
+        const woodWidthTotal = deskWidth; 
         const innerGap = deskWidth - (legThickness * 2);
         const deskTopY = deskHeight;
+        const userPlankDepth = 55, backPlankDepth = 24, cableGapDepth = 1.0;
 
-        const userPlankDepth = 55;
-        const backPlankDepth = 24;
-        const cableGapDepth = 1.0;
-
-        // Tableros superiores
+        // Maderas
         const userPlank = new THREE.Mesh(new THREE.BoxGeometry(woodWidthTotal, woodThick, userPlankDepth), woodMaterial);
         userPlank.position.set(0, deskTopY - woodThick/2, -(deskDepth/2) + (userPlankDepth/2));
         userPlank.castShadow = true; userPlank.receiveShadow = true;
-        deskGroup.add(userPlank);
+        surfaceGroup.add(userPlank);
 
         const backPlank = new THREE.Mesh(new THREE.BoxGeometry(woodWidthTotal, woodThick, backPlankDepth), woodMaterial);
         backPlank.position.set(0, deskTopY - woodThick/2, (deskDepth/2) - (backPlankDepth/2));
         backPlank.castShadow = true; backPlank.receiveShadow = true;
-        deskGroup.add(backPlank);
+        surfaceGroup.add(backPlank);
 
-        // Bandeja Técnica (Canaleta en U)
+        // Faldones
+        const tilt = Math.atan(10/75);
+        const fMonitorG = new THREE.Group(); fMonitorG.position.set(0, 75, 40); fMonitorG.rotation.x = tilt; 
+        const fMonitor = new THREE.Mesh(new THREE.BoxGeometry(woodWidthTotal, 20, woodThick), woodMaterial);
+        fMonitor.position.set(0, -10, woodThick/2); fMonitorG.add(fMonitor); 
+        surfaceGroup.add(fMonitorG);
+
+        const fUserG = new THREE.Group(); fUserG.position.set(0, 75, -40); fUserG.rotation.x = -tilt; 
+        const fUser = new THREE.Mesh(new THREE.BoxGeometry(woodWidthTotal, 10, woodThick), woodMaterial);
+        fUser.position.set(0, -5, -woodThick/2); fUserG.add(fUser); 
+        surfaceGroup.add(fUserG);
+
+        // --- BANDEJA TÉCNICA EN FORMA DE J (CORRECCIÓN GEOMÉTRICA) ---
         const gapZ = -(deskDepth/2) + userPlankDepth + (cableGapDepth/2);
-        const trayShape = new THREE.Shape();
-        trayShape.moveTo(-7.5, 12); trayShape.lineTo(-7.5, 0); trayShape.lineTo(7.5, 0); trayShape.lineTo(7.5, 12);
-        const trayInner = new THREE.Path();
-        trayInner.moveTo(7, 12); trayInner.lineTo(7, 0.5); trayInner.lineTo(-7, 0.5); trayInner.lineTo(-7, 12);
-        trayShape.holes.push(trayInner);
-        const trayGeometry = new THREE.ExtrudeGeometry(trayShape, { depth: innerGap, bevelEnabled: false });
-        trayGeometry.center();
-        const tray = new THREE.Mesh(trayGeometry, metalBlackMaterial);
-        tray.rotation.y = Math.PI/2;
-        tray.position.set(0, deskTopY - woodThick - 6, gapZ);
+        
+        // Creamos la forma del metal (la chapa doblada) para que no tenga "cara superior"
+        const trayProfile = new THREE.Shape();
+        const th = 0.5;      // Espesor de la chapa
+        const trayDepth = 18; // Profundidad total
+        const highWall = 12; // Pared trasera de anclaje
+        const lowWall = 4;   // Pared delantera de acceso
+
+        // Perfil continuo: Empezamos en el borde superior de la pared alta (atrás)
+        // Al rotar la J, queremos que la pared alta esté en el lado positivo del escritorio (atrás)
+        // Por lo tanto, en el Shape, el lado con la pared alta estará en un extremo del eje X.
+        
+        // Caminamos por el borde exterior
+        trayProfile.moveTo(-trayDepth/2, highWall);   // 1. Tope trasero arriba
+        trayProfile.lineTo(-trayDepth/2, 0);          // 2. Esquina trasera abajo
+        trayProfile.lineTo(trayDepth/2, 0);           // 3. Esquina delantera abajo
+        trayProfile.lineTo(trayDepth/2, lowWall);     // 4. Tope delantero arriba (lip de la J)
+        
+        // Caminamos por el borde interior para dar espesor
+        trayProfile.lineTo(trayDepth/2 - th, lowWall); // 5. Hacia adentro
+        trayProfile.lineTo(trayDepth/2 - th, th);      // 6. Bajamos al fondo interior
+        trayProfile.lineTo(-trayDepth/2 + th, th);     // 7. Vamos hacia atrás por el fondo interior
+        trayProfile.lineTo(-trayDepth/2 + th, highWall); // 8. Subimos por la pared trasera interior
+        
+        trayProfile.closePath(); // Cierra el metal, no el hueco de arriba
+
+        const trayGeo = new THREE.ExtrudeGeometry(trayProfile, { depth: innerGap, bevelEnabled: false });
+        trayGeo.center();
+        const tray = new THREE.Mesh(trayGeo, trayMaterial);
+        
+        // Rotación: El perfil X-Y local se convierte en el plano vertical-profundidad (Y-Z world)
+        tray.rotation.y = Math.PI/2; 
+        
+        // Posicionamiento bajo la ranura
+        // La pared alta (highWall) queda en Z+ (atrás) y la baja (lowWall) en Z- (frente usuario)
+        tray.position.set(0, deskTopY - woodThick - (highWall/2), gapZ);
+        tray.castShadow = true; tray.receiveShadow = true;
         deskGroup.add(tray);
 
-        // Patas trapezoidales
+        // Patas
         function createLeg() {
             const hLeg = deskHeight - woodThick;
             const s = new THREE.Shape();
@@ -231,72 +278,40 @@
             g.center();
             const m = new THREE.Mesh(g, metalBlackMaterial); m.castShadow = true; return m;
         }
-        const legOffset = (deskWidth / 2) - (legThickness / 2);
+        const legOffset = (deskWidth / 2) - (legThickness / 2); 
         const l1 = createLeg(); l1.rotation.y = Math.PI/2; l1.position.set(-legOffset, (deskHeight-woodThick)/2, 0); deskGroup.add(l1);
         const l2 = createLeg(); l2.rotation.y = Math.PI/2; l2.position.set(legOffset, (deskHeight-woodThick)/2, 0); deskGroup.add(l2);
 
-        // Faldones externos
-        const tilt = Math.atan(10/75);
-        const fMonitorG = new THREE.Group(); fMonitorG.position.set(0, 75, 40); fMonitorG.rotation.x = tilt;
-        const fMonitor = new THREE.Mesh(new THREE.BoxGeometry(woodWidthTotal, 20, woodThick), woodMaterial);
-        fMonitor.position.set(0, -10, woodThick/2); fMonitorG.add(fMonitor); deskGroup.add(fMonitorG);
-
-        const fUserG = new THREE.Group(); fUserG.position.set(0, 75, -40); fUserG.rotation.x = -tilt;
-        const fUser = new THREE.Mesh(new THREE.BoxGeometry(woodWidthTotal, 10, woodThick), woodMaterial);
-        fUser.position.set(0, -5, -woodThick/2); fUserG.add(fUser); deskGroup.add(fUserG);
-
-        // --- CABLEADO ELÉCTRICO ACTUALIZADO ---
-        // 1. Salida de bandeja técnica (Derecha)
-        const trayRightEnd = new THREE.Vector3(innerGap/2 - 2, deskTopY - woodThick - 6, gapZ);
-
-        // 2. Punto de entrada en la parte superior trasera de la pata derecha
+        // Cableado
+        const trayRightEnd = new THREE.Vector3(innerGap/2 - 2, deskTopY - woodThick - highWall + th + 1, gapZ);
         const legTopBackEntry = new THREE.Vector3(legOffset, deskTopY - woodThick - 5, gapZ);
-
-        // 3. Viaje por el tubo superior hacia la solapa menor (hacia Z negativo)
         const legTopFrontCorner = new THREE.Vector3(legOffset, deskTopY - woodThick - 5, -35);
-
-        // 4. Bajada por el perfil frontal de la pata hacia el suelo
-        const legBottomFrontExit = new THREE.Vector3(legOffset, 0.5, -35);
-
-        // 5. Salida hacia el frente (lado silla) para conectar al toma
-        const socketPos = new THREE.Vector3(legOffset + 20, 0.5, -60);
-
-        const cableCurve = new THREE.CatmullRomCurve3([
-            trayRightEnd,
-            new THREE.Vector3(trayRightEnd.x + 3, trayRightEnd.y, trayRightEnd.z), // Suavizado salida
-            legTopBackEntry,
-            legTopFrontCorner,
-            new THREE.Vector3(legOffset, deskHeight/2, -35), // Punto intermedio bajada
-            legBottomFrontExit,
-            new THREE.Vector3(legOffset, 0.5, -45), // Curva en el piso hacia el frente
-            socketPos
-        ]);
-
+        const legBottomFrontExit = new THREE.Vector3(legOffset, 0.4, -35); 
+        const socketPos = new THREE.Vector3(legOffset + 25, 0.4, -65); 
+        const cableCurve = new THREE.CatmullRomCurve3([trayRightEnd, legTopBackEntry, legTopFrontCorner, new THREE.Vector3(legOffset, deskHeight/2, -35), legBottomFrontExit, new THREE.Vector3(legOffset + 5, 0.4, -45), socketPos]);
         const cableTube = new THREE.Mesh(new THREE.TubeGeometry(cableCurve, 64, 0.4, 8, false), cableMaterial);
         cableTube.castShadow = true;
         deskGroup.add(cableTube);
 
-        // Toma de corriente (simulada en el frente)
-        const outlet = new THREE.Mesh(new THREE.BoxGeometry(6, 4, 1), new THREE.MeshStandardMaterial({color: 0xdddddd}));
-        outlet.position.set(socketPos.x, 4, socketPos.z - 1);
-        outlet.rotation.y = Math.PI / 4;
-        scene.add(outlet);
+        // Funciones UI
+        window.toggleSurface = () => {
+            surfaceGroup.visible = !surfaceGroup.visible;
+        };
 
-        // --- ACCESORIOS ---
+        // Accesorios
         function createMacBook() {
             const group = new THREE.Group();
             const base = new THREE.Mesh(new THREE.BoxGeometry(34, 1, 24), silverMaterial);
             base.position.y = 0.501; group.add(base);
             const kb = new THREE.Mesh(new THREE.BoxGeometry(28, 0.1, 10), new THREE.MeshStandardMaterial({ color: 0x111111 }));
             kb.position.set(0, 1.05, -2); group.add(kb);
-
             const lidPivot = new THREE.Group();
-            lidPivot.position.set(0, 1, 12);
+            lidPivot.position.set(0, 1, 12); 
             const lid = new THREE.Mesh(new THREE.BoxGeometry(34, 0.6, 24), silverMaterial);
             lid.position.set(0, 0, -12); lidPivot.add(lid);
             const screen = new THREE.Mesh(new THREE.BoxGeometry(32, 22, 0.1), screenMaterial);
             screen.rotation.x = Math.PI / 2; screen.position.set(0, -0.35, -12); lidPivot.add(screen);
-            lidPivot.rotation.x = Math.PI / 2.2; // Abierto hacia arriba
+            lidPivot.rotation.x = Math.PI / 2.2; 
             group.add(lidPivot);
             return group;
         }
@@ -319,10 +334,8 @@
                 screen.position.set(0, 25, deskDepth/2 - 30);
                 g.add(arm, screen);
             } else {
-                const neck = new THREE.Mesh(new THREE.BoxGeometry(4, 20, 2), silverMaterial);
-                neck.position.y = 10; screen.position.y = 25;
-                g.add(new THREE.Mesh(new THREE.BoxGeometry(20, 1, 15), silverMaterial), neck, screen);
-                g.position.z = 25;
+                g.add(new THREE.Mesh(new THREE.BoxGeometry(20, 1, 15), silverMaterial), new THREE.Mesh(new THREE.BoxGeometry(4, 20, 2), silverMaterial), screen);
+                screen.position.y = 25; g.position.z = 25;
             }
             return g;
         }
@@ -331,7 +344,7 @@
             const g = new THREE.Group();
             const base = new THREE.Mesh(new THREE.CylinderGeometry(8, 8, 1, 32), metalBlackMaterial);
             const neck = new THREE.Mesh(new THREE.BoxGeometry(2, 40, 2), metalBlackMaterial);
-            neck.position.set(0, 20, 0); neck.rotation.z = -0.2;
+            neck.position.set(0, 20, 0); neck.rotation.z = -0.2; 
             const head = new THREE.Mesh(new THREE.BoxGeometry(25, 2, 5), metalBlackMaterial);
             head.position.set(-10, 40, 0); g.add(base, neck, head);
             return g;
@@ -353,7 +366,6 @@
             }
         };
 
-        // Cotas
         const dimGroup = new THREE.Group();
         scene.add(dimGroup);
         function addDim(s, e, t, o) {
