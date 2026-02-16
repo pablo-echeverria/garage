@@ -76,7 +76,7 @@
 <body>
     <div id="info">
         <h2>Visualizador de Escritorio Industrial</h2>
-        <p>Bandeja técnica alineada con el marco de las patas (10cm de altura)</p>
+        <p>Bandeja con 3 pares de enchufes orientados hacia ARRIBA</p>
     </div>
     
     <div id="controls-ui">
@@ -183,6 +183,8 @@
         const screenMaterial = new THREE.MeshStandardMaterial({ color: 0x050505, roughness: 0.1 });
         const trayMaterial = new THREE.MeshStandardMaterial({ color: 0x2a2a2a, roughness: 0.5, metalness: 0.6, side: THREE.DoubleSide });
         const cableMaterial = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.8 });
+        const socketMaterial = new THREE.MeshStandardMaterial({ color: 0xdddddd });
+        const socketHoleMaterial = new THREE.MeshStandardMaterial({ color: 0x222222 });
 
         window.changeWood = (type) => {
             const s = woodMaterials[type];
@@ -204,7 +206,7 @@
         const deskTopY = deskHeight;
         const userPlankDepth = 55, backPlankDepth = 24, cableGapDepth = 1.0;
 
-        // Maderas
+        // --- Maderas ---
         const userPlank = new THREE.Mesh(new THREE.BoxGeometry(woodWidthTotal, woodThick, userPlankDepth), woodMaterial);
         userPlank.position.set(0, deskTopY - woodThick/2, -(deskDepth/2) + (userPlankDepth/2));
         userPlank.castShadow = true; userPlank.receiveShadow = true;
@@ -227,48 +229,74 @@
         fUser.position.set(0, -5, -woodThick/2); fUserG.add(fUser); 
         surfaceGroup.add(fUserG);
 
-        // --- BANDEJA TÉCNICA EN FORMA DE J (CORREGIDA Y ALINEADA CON PATAS) ---
+        // --- BANDEJA TÉCNICA EN FORMA DE J ---
         const gapZ = -(deskDepth/2) + userPlankDepth + (cableGapDepth/2);
-        
         const trayProfile = new THREE.Shape();
-        const th = 0.5;      
-        const trayDepth = 18; 
-        // MODIFICACIÓN: highWall ahora mide 10cm para coincidir con el marco de las patas
+        const th = 0.4;      
+        const trayDepthVal = 16; 
         const highWall = 10; 
         const lowWall = 4;   
 
-        // Perfil Exterior
-        trayProfile.moveTo(-trayDepth/2, highWall);   
-        trayProfile.lineTo(-trayDepth/2, 0);          
-        trayProfile.lineTo(trayDepth/2, 0);           
-        trayProfile.lineTo(trayDepth/2, lowWall);     
-        
-        // Perfil Interior para espesor
-        trayProfile.lineTo(trayDepth/2 - th, lowWall); 
-        trayProfile.lineTo(trayDepth/2 - th, th);      
-        trayProfile.lineTo(-trayDepth/2 + th, th);     
-        trayProfile.lineTo(-trayDepth/2 + th, highWall); 
-        
+        trayProfile.moveTo(-trayDepthVal/2, highWall);   
+        trayProfile.lineTo(-trayDepthVal/2, 0);          
+        trayProfile.lineTo(trayDepthVal/2, 0);           
+        trayProfile.lineTo(trayDepthVal/2, lowWall);     
+        trayProfile.lineTo(trayDepthVal/2 - th, lowWall); 
+        trayProfile.lineTo(trayDepthVal/2 - th, th);      
+        trayProfile.lineTo(-trayDepthVal/2 + th, th);     
+        trayProfile.lineTo(-trayDepthVal/2 + th, highWall); 
         trayProfile.closePath(); 
 
         const trayGeo = new THREE.ExtrudeGeometry(trayProfile, { depth: innerGap, bevelEnabled: false });
         trayGeo.center();
         const tray = new THREE.Mesh(trayGeo, trayMaterial);
-        
         tray.rotation.y = Math.PI/2; 
-        
-        // Posicionamiento: alineado con la parte superior de la estructura metálica (Y=72)
         tray.position.set(0, deskTopY - woodThick - (highWall/2), gapZ);
         tray.castShadow = true; tray.receiveShadow = true;
         deskGroup.add(tray);
 
-        // Patas
+        // --- ENCHUFES (3 PARES) ORIENTADOS HACIA ARRIBA ---
+        function createSocketPair() {
+            const group = new THREE.Group();
+            // Caja base
+            const box = new THREE.Mesh(new THREE.BoxGeometry(12, 5, 2), socketMaterial);
+            group.add(box);
+            // Agujeros representación
+            for(let i=0; i<2; i++){
+                const xOff = (i === 0) ? -3 : 3;
+                // Círculos mirando hacia Z+ en el espacio local del grupo
+                const hole = new THREE.Mesh(new THREE.CircleGeometry(1.2, 16), socketHoleMaterial);
+                hole.position.set(xOff, 0, 1.01);
+                group.add(hole);
+                // Detalle central
+                const center = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 0.1), socketHoleMaterial);
+                center.position.set(xOff, 0, 1.02);
+                group.add(center);
+            }
+            // Rotamos el grupo entero para que los agujeros miren hacia el eje Y+ (Arriba)
+            group.rotation.x = -Math.PI / 2;
+            return group;
+        }
+
+        // Ubicaciones de los enchufes descansando en el fondo de la bandeja
+        const trayBottomY = deskTopY - woodThick - highWall + 1.0; // Fondo de la chapa + radio de la caja
+        const trayCenterZ = gapZ; 
+        
+        const posLeft = -50, posCenter = 0, posRight = 50;
+        
+        [posLeft, posCenter, posRight].forEach(x => {
+            const pair = createSocketPair();
+            pair.position.set(x, trayBottomY, trayCenterZ);
+            deskGroup.add(pair);
+        });
+
+        // --- PATAS ---
         function createLeg() {
-            const hLeg = deskHeight - woodThick; // 72cm
+            const hLeg = deskHeight - woodThick; 
             const s = new THREE.Shape();
             s.moveTo(-40, hLeg); s.lineTo(40, hLeg); s.lineTo(30, 0); s.lineTo(-30, 0); s.lineTo(-40, hLeg);
             const h = new THREE.Path();
-            const sideF = 6, topF = 10, botF = 6; // topF es 10cm
+            const sideF = 6, topF = 10, botF = 6; 
             h.moveTo(-34, hLeg - topF); h.lineTo(-24, botF); h.lineTo(24, botF); h.lineTo(34, hLeg - topF); h.lineTo(-34, hLeg - topF);
             s.holes.push(h);
             const g = new THREE.ExtrudeGeometry(s, { depth: legThickness, bevelEnabled: true, bevelThickness: 0.2, bevelSize: 0.2, bevelSegments: 3 });
@@ -279,21 +307,34 @@
         const l1 = createLeg(); l1.rotation.y = Math.PI/2; l1.position.set(-legOffset, (deskHeight-woodThick)/2, 0); deskGroup.add(l1);
         const l2 = createLeg(); l2.rotation.y = Math.PI/2; l2.position.set(legOffset, (deskHeight-woodThick)/2, 0); deskGroup.add(l2);
 
-        // Cableado
-        const trayRightEnd = new THREE.Vector3(innerGap/2 - 2, deskTopY - woodThick - highWall + th + 1, gapZ);
+        // --- CABLEADO ELÉCTRICO ---
+        // Puntos de paso por el fondo de la bandeja
+        const trayLeftCableStart = new THREE.Vector3(posLeft - 10, trayBottomY, trayCenterZ);
+        const cableTrayEnd = new THREE.Vector3(innerGap/2 - 2, trayBottomY, trayCenterZ);
         const legTopBackEntry = new THREE.Vector3(legOffset, deskTopY - woodThick - 5, gapZ);
         const legTopFrontCorner = new THREE.Vector3(legOffset, deskTopY - woodThick - 5, -35);
         const legBottomFrontExit = new THREE.Vector3(legOffset, 0.4, -35); 
         const socketPos = new THREE.Vector3(legOffset + 25, 0.4, -65); 
-        const cableCurve = new THREE.CatmullRomCurve3([trayRightEnd, legTopBackEntry, legTopFrontCorner, new THREE.Vector3(legOffset, deskHeight/2, -35), legBottomFrontExit, new THREE.Vector3(legOffset + 5, 0.4, -45), socketPos]);
-        const cableTube = new THREE.Mesh(new THREE.TubeGeometry(cableCurve, 64, 0.4, 8, false), cableMaterial);
+
+        const cableCurve = new THREE.CatmullRomCurve3([
+            trayLeftCableStart,
+            new THREE.Vector3(posCenter, trayBottomY, trayCenterZ), 
+            new THREE.Vector3(posRight, trayBottomY, trayCenterZ),  
+            cableTrayEnd,
+            legTopBackEntry,
+            legTopFrontCorner,
+            new THREE.Vector3(legOffset, deskHeight/2, -35), 
+            legBottomFrontExit,
+            new THREE.Vector3(legOffset + 5, 0.4, -45), 
+            socketPos
+        ]);
+
+        const cableTube = new THREE.Mesh(new THREE.TubeGeometry(cableCurve, 100, 0.4, 8, false), cableMaterial);
         cableTube.castShadow = true;
         deskGroup.add(cableTube);
 
         // Funciones UI
-        window.toggleSurface = () => {
-            surfaceGroup.visible = !surfaceGroup.visible;
-        };
+        window.toggleSurface = () => { surfaceGroup.visible = !surfaceGroup.visible; };
 
         // Accesorios
         function createMacBook() {
