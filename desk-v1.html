@@ -109,11 +109,11 @@
             <summary>🖥️ ACCESORIOS</summary>
             <div class="content">
                 <div class="item-toggle">
-                    <span>Silla Gerencial</span>
+                    <span>Silla</span>
                     <input type="checkbox" id="check-chair" onchange="updateItems()">
                 </div>
                 <div class="item-toggle">
-                    <span>MacBook Pro</span>
+                    <span>Laptop</span>
                     <input type="checkbox" id="check-laptop" onchange="updateItems()">
                 </div>
                 <div class="item-toggle">
@@ -125,7 +125,7 @@
                     <input type="checkbox" id="check-arm-monitor" onchange="updateItems()">
                 </div>
                 <div class="item-toggle">
-                    <span>Lámpara LED</span>
+                    <span>Lámpara</span>
                     <input type="checkbox" id="check-lamp" onchange="updateItems()">
                 </div>
             </div>
@@ -181,7 +181,7 @@
 
         scene.add(new THREE.AmbientLight(0xffffff, 0.7));
         
-        // CORRECCIÓN DE SOMBRAS Y LUZ
+        // Configuración de Luz y Sombras
         const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
         dirLight.position.set(-80, 200, -80);
         dirLight.castShadow = true;
@@ -375,20 +375,25 @@
                 const wheel = new THREE.Mesh(new THREE.SphereGeometry(2, 8, 8), leatherMaterial);
                 wheel.position.set(Math.sin(i*1.25)*25, 2, Math.cos(i*1.25)*25); g.add(wheel);
             }
-            // Piston
-            const piston = new THREE.Mesh(new THREE.CylinderGeometry(2, 2, 20, 16), silverMaterial);
-            piston.position.y = 15; g.add(piston);
-            // Asiento
+            // Piston (Altura ajustada: Un poco menos alta)
+            const pistonH = 26;
+            const piston = new THREE.Mesh(new THREE.CylinderGeometry(2, 2.2, pistonH, 16), silverMaterial);
+            piston.position.y = 5 + (pistonH / 2); g.add(piston);
+            
+            // Asiento (Ajustado)
+            const seatY = 5 + pistonH + 4;
             const seat = new THREE.Mesh(new THREE.BoxGeometry(45, 8, 45), leatherMaterial);
-            seat.position.y = 28; g.add(seat);
+            seat.position.y = seatY; g.add(seat);
+            
             // Respaldo
             const back = new THREE.Mesh(new THREE.BoxGeometry(45, 60, 8), leatherMaterial);
-            back.position.set(0, 55, 22); back.rotation.x = -0.1; g.add(back);
+            back.position.set(0, seatY + 28, 22); back.rotation.x = -0.1; g.add(back);
+            
             // Brazos
             for(let i=0; i<2; i++){
                 const side = i === 0 ? -25 : 25;
                 const arm = new THREE.Mesh(new THREE.BoxGeometry(4, 15, 20), leatherMaterial);
-                arm.position.set(side, 38, 0); g.add(arm);
+                arm.position.set(side, seatY + 10, 0); g.add(arm);
             }
             g.traverse(n => { if(n.isMesh) { n.castShadow = true; n.receiveShadow = true; }});
             return g;
@@ -407,10 +412,7 @@
         window.updateItems = () => {
             while(itemsGroup.children.length > 0) itemsGroup.remove(itemsGroup.children[0]);
             if (document.getElementById('check-chair').checked) {
-                const chair = createChair();
-                chair.position.set(0, 0, -85);
-                chair.rotation.y = Math.PI; // CORRECCIÓN: Rotada 180° para mirar al escritorio
-                itemsGroup.add(chair);
+                const chair = createChair(); chair.position.set(0, 0, -85); chair.rotation.y = Math.PI; itemsGroup.add(chair);
             }
             if (document.getElementById('check-laptop').checked) {
                 const laptop = createMacBook(); laptop.position.set(0, deskTopY, -15); itemsGroup.add(laptop);
