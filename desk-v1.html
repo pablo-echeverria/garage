@@ -5,68 +5,98 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Escritorio Industrial 3D - Setup Final</title>
     <style>
-        body { margin: 0; overflow: hidden; background-color: #f0f0f0; font-family: sans-serif; }
-        #info {
-            position: absolute;
-            top: 10px;
-            width: 100%;
-            text-align: center;
-            color: #333;
-            pointer-events: none;
-            z-index: 10;
-        }
+        body { margin: 0; overflow: hidden; background-color: #f0f0f0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        
         #controls-ui {
             position: absolute;
             bottom: 20px;
             left: 20px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
             pointer-events: none;
             z-index: 20;
             max-height: 90vh;
             overflow-y: auto;
-            padding-right: 10px;
+            padding-right: 15px;
         }
+
+        /* Estilo Translúcido y Colapsable */
         .control-box {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 15px;
+            background: rgba(255, 255, 255, 0.65); /* Translúcido */
+            backdrop-filter: blur(10px); /* Desenfoque de fondo */
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
             border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
             pointer-events: auto;
-            min-width: 220px;
-            backdrop-filter: blur(5px);
+            min-width: 240px;
+            transition: all 0.3s ease;
         }
-        h3 { margin: 0 0 10px 0; font-size: 14px; color: #444; font-weight: 700; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+
+        summary {
+            padding: 12px 15px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 700;
+            color: #222;
+            list-style: none;
+            outline: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+        }
+
+        summary::-webkit-details-marker { display: none; }
         
+        summary::after {
+            content: '▼';
+            font-size: 10px;
+            transition: transform 0.3s;
+            opacity: 0.5;
+        }
+
+        details[open] summary::after {
+            transform: rotate(180deg);
+        }
+
+        .content {
+            padding: 0 15px 15px 15px;
+            border-top: 1px solid rgba(0,0,0,0.05);
+            padding-top: 12px;
+        }
+
         select, button {
             width: 100%;
             padding: 10px;
             margin-bottom: 8px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 14px;
+            border: 1px solid rgba(0,0,0,0.1);
+            border-radius: 8px;
+            font-size: 13px;
             outline: none;
             cursor: pointer;
-            background: #f8f9fa;
+            background: rgba(255, 255, 255, 0.8);
             font-weight: 600;
             color: #333;
-            transition: 0.2s;
+            transition: background 0.2s;
         }
-        button:hover, select:hover { background: #e9ecef; }
+        button:hover { background: #fff; }
         
         .btn-toggle-view {
-            background: #eab308; 
+            background: #facc15; 
             color: #000;
+            border: none;
         }
-        .btn-toggle-view:hover { background: #ca8a04; }
+        .btn-toggle-view:hover { background: #eab308; }
 
         .item-toggle {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             font-size: 13px;
+            color: #444;
         }
         .item-toggle input { cursor: pointer; width: 18px; height: 18px; }
 
@@ -74,71 +104,71 @@
     </style>
 </head>
 <body>
-    <div id="info">
-        <h2>Visualizador de Escritorio Industrial</h2>
-        <p>Bandeja con 3 pares de enchufes orientados hacia ARRIBA</p>
-    </div>
+    <div id="info"></div>
     
     <div id="controls-ui">
         <!-- Visualización -->
-        <div class="control-box">
-            <h3>🔍 Vista Estructural</h3>
-            <button class="btn-toggle-view" onclick="toggleSurface()">Ocultar/Mostrar Tapas</button>
-            <button onclick="toggleDimensions()">Ocultar/Mostrar Medidas</button>
-        </div>
+        <details class="control-box" open>
+            <summary>🔍 VISTA ESTRUCTURAL</summary>
+            <div class="content">
+                <button class="btn-toggle-view" onclick="toggleSurface()">Ocultar/Mostrar Tapas</button>
+                <button onclick="toggleDimensions()">Ocultar/Mostrar Medidas</button>
+            </div>
+        </details>
 
         <!-- Panel de Accesorios -->
-        <div class="control-box">
-            <h3>🖥️ Accesorios</h3>
-            <div class="item-toggle">
-                <span>MacBook Pro</span>
-                <input type="checkbox" id="check-laptop" onchange="updateItems()">
+        <details class="control-box">
+            <summary>🖥️ ACCESORIOS</summary>
+            <div class="content">
+                <div class="item-toggle">
+                    <span>MacBook Pro</span>
+                    <input type="checkbox" id="check-laptop" onchange="updateItems()">
+                </div>
+                <div class="item-toggle">
+                    <span>Monitor (Base)</span>
+                    <input type="checkbox" id="check-monitor" onchange="updateItems()">
+                </div>
+                <div class="item-toggle">
+                    <span>Monitor (Brazo)</span>
+                    <input type="checkbox" id="check-arm-monitor" onchange="updateItems()">
+                </div>
+                <div class="item-toggle">
+                    <span>Lámpara LED</span>
+                    <input type="checkbox" id="check-lamp" onchange="updateItems()">
+                </div>
             </div>
-            <div class="item-toggle">
-                <span>Monitor (Base)</span>
-                <input type="checkbox" id="check-monitor" onchange="updateItems()">
-            </div>
-            <div class="item-toggle">
-                <span>Monitor (Brazo)</span>
-                <input type="checkbox" id="check-arm-monitor" onchange="updateItems()">
-            </div>
-            <div class="item-toggle">
-                <span>Lámpara LED</span>
-                <input type="checkbox" id="check-lamp" onchange="updateItems()">
-            </div>
-        </div>
+        </details>
 
         <!-- Selector de Madera -->
-        <div class="control-box">
-            <h3>🎨 Acabado</h3>
-            <select id="woodSelector" onchange="changeWood(this.value)">
-                <optgroup label="Maderas">
-                    <option value="black">Negro Mate</option>
-                    <option value="oak">Roble Claro</option>
-                    <option value="walnut">Nogal Americano</option>
-                    <option value="mahogany">Caoba Rojizo</option>
-                    <option value="white">Blanco Minimalista</option>
-                    <option value="grey">Gris Cemento</option>
-                </optgroup>
-                <optgroup label="Colores Sólidos">
-                    <option value="solid_navy">Azul Marino</option>
-                    <option value="solid_red">Rojo Vino</option>
-                    <option value="solid_green">Verde Oliva</option>
-                </optgroup>
-            </select>
-        </div>
-
-        <div class="control-box">
-            <div class="help-text">
-                🖱️ Rotar para ver interior | 🖱️ Zoom
+        <details class="control-box" open>
+            <summary>🎨 ACABADO</summary>
+            <div class="content">
+                <select id="woodSelector" onchange="changeWood(this.value)">
+                    <optgroup label="Maderas">
+                        <option value="black">Negro Mate</option>
+                        <option value="wenge">Wengue</option>
+                        <option value="oak">Roble Claro</option>
+                        <option value="walnut">Nogal Americano</option>
+                        <option value="mahogany">Caoba Rojizo</option>
+                        <option value="white">Blanco Minimalista</option>
+                        <option value="grey">Gris Cemento</option>
+                    </optgroup>
+                    <optgroup label="Colores Sólidos">
+                        <option value="solid_navy">Azul Marino</option>
+                        <option value="solid_red">Rojo Vino</option>
+                        <option value="solid_green">Verde Oliva</option>
+                    </optgroup>
+                </select>
+                <div class="help-text">🖱️ Rotar | 🖱️ Zoom</div>
             </div>
-        </div>
+        </details>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
     <script>
+        // --- Escena y Cámara ---
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0xf5f5f5);
 
@@ -161,12 +191,13 @@
         const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
         dirLight.position.set(-50, 150, -50);
         dirLight.castShadow = true;
-        dirLight.shadow.mapSize.width = 2048;
-        dirLight.shadow.mapSize.height = 2048;
+        dirLight.shadow.mapSize.set(2048, 2048);
         scene.add(dirLight);
 
+        // --- Materiales ---
         const woodMaterials = {
             black: { color: 0x111111, roughness: 0.9 },
+            wenge: { color: 0x221a15, roughness: 0.8 }, // Marrón muy oscuro casi negro
             oak: { color: 0xE0C9A6, roughness: 0.6 },
             walnut: { color: 0x5C4033, roughness: 0.7 },
             mahogany: { color: 0x420D09, roughness: 0.6 },
@@ -201,41 +232,36 @@
         surfaceGroup.add(itemsGroup); 
 
         const deskWidth = 180, deskDepth = 80, deskHeight = 75, woodThick = 3.0, legThickness = 10;
-        const woodWidthTotal = deskWidth; 
         const innerGap = deskWidth - (legThickness * 2);
-        const deskTopY = deskHeight;
         const userPlankDepth = 55, backPlankDepth = 24, cableGapDepth = 1.0;
+        const deskTopY = deskHeight;
 
         // --- Maderas ---
-        const userPlank = new THREE.Mesh(new THREE.BoxGeometry(woodWidthTotal, woodThick, userPlankDepth), woodMaterial);
+        const userPlank = new THREE.Mesh(new THREE.BoxGeometry(deskWidth, woodThick, userPlankDepth), woodMaterial);
         userPlank.position.set(0, deskTopY - woodThick/2, -(deskDepth/2) + (userPlankDepth/2));
         userPlank.castShadow = true; userPlank.receiveShadow = true;
         surfaceGroup.add(userPlank);
 
-        const backPlank = new THREE.Mesh(new THREE.BoxGeometry(woodWidthTotal, woodThick, backPlankDepth), woodMaterial);
+        const backPlank = new THREE.Mesh(new THREE.BoxGeometry(deskWidth, woodThick, backPlankDepth), woodMaterial);
         backPlank.position.set(0, deskTopY - woodThick/2, (deskDepth/2) - (backPlankDepth/2));
         backPlank.castShadow = true; backPlank.receiveShadow = true;
         surfaceGroup.add(backPlank);
 
-        // Faldones
         const tilt = Math.atan(10/75);
         const fMonitorG = new THREE.Group(); fMonitorG.position.set(0, 75, 40); fMonitorG.rotation.x = tilt; 
-        const fMonitor = new THREE.Mesh(new THREE.BoxGeometry(woodWidthTotal, 20, woodThick), woodMaterial);
+        const fMonitor = new THREE.Mesh(new THREE.BoxGeometry(deskWidth, 20, woodThick), woodMaterial);
         fMonitor.position.set(0, -10, woodThick/2); fMonitorG.add(fMonitor); 
         surfaceGroup.add(fMonitorG);
 
         const fUserG = new THREE.Group(); fUserG.position.set(0, 75, -40); fUserG.rotation.x = -tilt; 
-        const fUser = new THREE.Mesh(new THREE.BoxGeometry(woodWidthTotal, 10, woodThick), woodMaterial);
+        const fUser = new THREE.Mesh(new THREE.BoxGeometry(deskWidth, 10, woodThick), woodMaterial);
         fUser.position.set(0, -5, -woodThick/2); fUserG.add(fUser); 
         surfaceGroup.add(fUserG);
 
-        // --- BANDEJA TÉCNICA EN FORMA DE J ---
+        // --- Bandeja Técnica en J ---
         const gapZ = -(deskDepth/2) + userPlankDepth + (cableGapDepth/2);
         const trayProfile = new THREE.Shape();
-        const th = 0.4;      
-        const trayDepthVal = 16; 
-        const highWall = 10; 
-        const lowWall = 4;   
+        const th = 0.4, trayDepthVal = 16, highWall = 10, lowWall = 4;   
 
         trayProfile.moveTo(-trayDepthVal/2, highWall);   
         trayProfile.lineTo(-trayDepthVal/2, 0);          
@@ -255,48 +281,39 @@
         tray.castShadow = true; tray.receiveShadow = true;
         deskGroup.add(tray);
 
-        // --- ENCHUFES (3 PARES) ORIENTADOS HACIA ARRIBA ---
+        // --- Enchufes ---
         function createSocketPair() {
             const group = new THREE.Group();
-            // Caja base
             const box = new THREE.Mesh(new THREE.BoxGeometry(12, 5, 2), socketMaterial);
             group.add(box);
-            // Agujeros representación
             for(let i=0; i<2; i++){
                 const xOff = (i === 0) ? -3 : 3;
-                // Círculos mirando hacia Z+ en el espacio local del grupo
                 const hole = new THREE.Mesh(new THREE.CircleGeometry(1.2, 16), socketHoleMaterial);
                 hole.position.set(xOff, 0, 1.01);
                 group.add(hole);
-                // Detalle central
                 const center = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 0.1), socketHoleMaterial);
                 center.position.set(xOff, 0, 1.02);
                 group.add(center);
             }
-            // Rotamos el grupo entero para que los agujeros miren hacia el eje Y+ (Arriba)
             group.rotation.x = -Math.PI / 2;
             return group;
         }
 
-        // Ubicaciones de los enchufes descansando en el fondo de la bandeja
-        const trayBottomY = deskTopY - woodThick - highWall + 1.0; // Fondo de la chapa + radio de la caja
-        const trayCenterZ = gapZ; 
-        
+        const trayBottomY = deskTopY - woodThick - highWall + 1.0;
         const posLeft = -50, posCenter = 0, posRight = 50;
-        
         [posLeft, posCenter, posRight].forEach(x => {
             const pair = createSocketPair();
-            pair.position.set(x, trayBottomY, trayCenterZ);
+            pair.position.set(x, trayBottomY, gapZ);
             deskGroup.add(pair);
         });
 
-        // --- PATAS ---
+        // --- Patas ---
         function createLeg() {
             const hLeg = deskHeight - woodThick; 
             const s = new THREE.Shape();
             s.moveTo(-40, hLeg); s.lineTo(40, hLeg); s.lineTo(30, 0); s.lineTo(-30, 0); s.lineTo(-40, hLeg);
             const h = new THREE.Path();
-            const sideF = 6, topF = 10, botF = 6; 
+            const topF = 10, sideF = 6, botF = 6; 
             h.moveTo(-34, hLeg - topF); h.lineTo(-24, botF); h.lineTo(24, botF); h.lineTo(34, hLeg - topF); h.lineTo(-34, hLeg - topF);
             s.holes.push(h);
             const g = new THREE.ExtrudeGeometry(s, { depth: legThickness, bevelEnabled: true, bevelThickness: 0.2, bevelSize: 0.2, bevelSegments: 3 });
@@ -307,36 +324,21 @@
         const l1 = createLeg(); l1.rotation.y = Math.PI/2; l1.position.set(-legOffset, (deskHeight-woodThick)/2, 0); deskGroup.add(l1);
         const l2 = createLeg(); l2.rotation.y = Math.PI/2; l2.position.set(legOffset, (deskHeight-woodThick)/2, 0); deskGroup.add(l2);
 
-        // --- CABLEADO ELÉCTRICO ---
-        // Puntos de paso por el fondo de la bandeja
-        const trayLeftCableStart = new THREE.Vector3(posLeft - 10, trayBottomY, trayCenterZ);
-        const cableTrayEnd = new THREE.Vector3(innerGap/2 - 2, trayBottomY, trayCenterZ);
+        // --- Cableado ---
+        const trayRightEnd = new THREE.Vector3(innerGap/2 - 2, trayBottomY, gapZ);
         const legTopBackEntry = new THREE.Vector3(legOffset, deskTopY - woodThick - 5, gapZ);
         const legTopFrontCorner = new THREE.Vector3(legOffset, deskTopY - woodThick - 5, -35);
         const legBottomFrontExit = new THREE.Vector3(legOffset, 0.4, -35); 
         const socketPos = new THREE.Vector3(legOffset + 25, 0.4, -65); 
-
-        const cableCurve = new THREE.CatmullRomCurve3([
-            trayLeftCableStart,
-            new THREE.Vector3(posCenter, trayBottomY, trayCenterZ), 
-            new THREE.Vector3(posRight, trayBottomY, trayCenterZ),  
-            cableTrayEnd,
-            legTopBackEntry,
-            legTopFrontCorner,
-            new THREE.Vector3(legOffset, deskHeight/2, -35), 
-            legBottomFrontExit,
-            new THREE.Vector3(legOffset + 5, 0.4, -45), 
-            socketPos
-        ]);
-
+        const cableCurve = new THREE.CatmullRomCurve3([trayRightEnd, legTopBackEntry, legTopFrontCorner, new THREE.Vector3(legOffset, deskHeight/2, -35), legBottomFrontExit, new THREE.Vector3(legOffset + 5, 0.4, -45), socketPos]);
         const cableTube = new THREE.Mesh(new THREE.TubeGeometry(cableCurve, 100, 0.4, 8, false), cableMaterial);
         cableTube.castShadow = true;
         deskGroup.add(cableTube);
 
-        // Funciones UI
+        // --- UI ---
         window.toggleSurface = () => { surfaceGroup.visible = !surfaceGroup.visible; };
 
-        // Accesorios
+        // --- Accesorios ---
         function createMacBook() {
             const group = new THREE.Group();
             const base = new THREE.Mesh(new THREE.BoxGeometry(34, 1, 24), silverMaterial);
@@ -349,7 +351,7 @@
             lid.position.set(0, 0, -12); lidPivot.add(lid);
             const screen = new THREE.Mesh(new THREE.BoxGeometry(32, 22, 0.1), screenMaterial);
             screen.rotation.x = Math.PI / 2; screen.position.set(0, -0.35, -12); lidPivot.add(screen);
-            lidPivot.rotation.x = Math.PI / 2.2; 
+            lidPivot.rotation.x = Math.PI / 2.2;
             group.add(lidPivot);
             return group;
         }
