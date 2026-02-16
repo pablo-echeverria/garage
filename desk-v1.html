@@ -57,10 +57,19 @@
             padding-top: 12px;
         }
 
+        label {
+            display: block;
+            font-size: 11px;
+            font-weight: 700;
+            color: #666;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+        }
+
         select, button {
             width: 100%;
             padding: 10px;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
             border: 1px solid rgba(0,0,0,0.1);
             border-radius: 8px;
             font-size: 13px;
@@ -131,11 +140,30 @@
             </div>
         </details>
 
-        <!-- Selector de Madera -->
+        <!-- Selector de Madera Independiente -->
         <details class="control-box" open>
             <summary>🎨 ACABADO</summary>
             <div class="content">
-                <select id="woodSelector" onchange="changeWood(this.value)">
+                <label for="userWoodSelector">Tapa Principal (55cm)</label>
+                <select id="userWoodSelector" onchange="changeWood('user', this.value)">
+                    <optgroup label="Maderas">
+                        <option value="black">Negro Mate</option>
+                        <option value="wenge">Wengue</option>
+                        <option value="oak">Roble Claro</option>
+                        <option value="walnut">Nogal Americano</option>
+                        <option value="mahogany">Caoba Rojizo</option>
+                        <option value="white">Blanco Minimalista</option>
+                        <option value="grey">Gris Cemento</option>
+                    </optgroup>
+                    <optgroup label="Colores Sólidos">
+                        <option value="solid_navy">Azul Marino</option>
+                        <option value="solid_red">Rojo Vino</option>
+                        <option value="solid_green">Verde Oliva</option>
+                    </optgroup>
+                </select>
+
+                <label for="backWoodSelector">Tapa Posterior (24cm)</label>
+                <select id="backWoodSelector" onchange="changeWood('back', this.value)">
                     <optgroup label="Maderas">
                         <option value="black">Negro Mate</option>
                         <option value="wenge">Wengue</option>
@@ -181,7 +209,6 @@
 
         scene.add(new THREE.AmbientLight(0xffffff, 0.7));
         
-        // Configuración de Luz y Sombras
         const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
         dirLight.position.set(-80, 200, -80);
         dirLight.castShadow = true;
@@ -193,7 +220,7 @@
         dirLight.shadow.camera.far = 1000;
         scene.add(dirLight);
 
-        // --- Materiales ---
+        // --- Materiales de Madera ---
         const woodMaterials = {
             black: { color: 0x111111, roughness: 0.9 },
             wenge: { color: 0x221a15, roughness: 0.8 },
@@ -207,7 +234,10 @@
             solid_green: { color: 0x556b2f, roughness: 0.5 }
         };
 
-        const woodMaterial = new THREE.MeshStandardMaterial({ color: woodMaterials.black.color, roughness: 0.9, side: THREE.DoubleSide });
+        // Creamos dos materiales independientes
+        const userWoodMaterial = new THREE.MeshStandardMaterial({ color: woodMaterials.black.color, roughness: 0.9, side: THREE.DoubleSide });
+        const backWoodMaterial = new THREE.MeshStandardMaterial({ color: woodMaterials.black.color, roughness: 0.9, side: THREE.DoubleSide });
+
         const metalBlackMaterial = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.5, metalness: 0.7 });
         const silverMaterial = new THREE.MeshStandardMaterial({ color: 0xbbbbbb, roughness: 0.3, metalness: 0.8 });
         const leatherMaterial = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.8 });
@@ -216,9 +246,13 @@
         const socketMaterial = new THREE.MeshStandardMaterial({ color: 0xdddddd });
         const socketHoleMaterial = new THREE.MeshStandardMaterial({ color: 0x222222 });
 
-        window.changeWood = (type) => {
-            const s = woodMaterials[type];
-            if (s) { woodMaterial.color.setHex(s.color); woodMaterial.roughness = s.roughness; }
+        window.changeWood = (target, type) => {
+            const config = woodMaterials[type];
+            if (config) {
+                const material = (target === 'user') ? userWoodMaterial : backWoodMaterial;
+                material.color.setHex(config.color);
+                material.roughness = config.roughness;
+            }
         };
 
         const deskGroup = new THREE.Group();
@@ -235,27 +269,28 @@
         const userPlankDepth = 55, backPlankDepth = 24, cableGapDepth = 1.0;
         const deskTopY = deskHeight;
 
-        // --- Estructura Madera ---
-        const userPlank = new THREE.Mesh(new THREE.BoxGeometry(deskWidth, woodThick, userPlankDepth), woodMaterial);
+        // --- Tapa Principal y Faldón (Material Usuario) ---
+        const userPlank = new THREE.Mesh(new THREE.BoxGeometry(deskWidth, woodThick, userPlankDepth), userWoodMaterial);
         userPlank.position.set(0, deskTopY - woodThick/2, -(deskDepth/2) + (userPlankDepth/2));
         userPlank.castShadow = true; userPlank.receiveShadow = true;
         surfaceGroup.add(userPlank);
 
-        const backPlank = new THREE.Mesh(new THREE.BoxGeometry(deskWidth, woodThick, backPlankDepth), woodMaterial);
+        const tilt = Math.atan(10/75);
+        const fUserG = new THREE.Group(); fUserG.position.set(0, 75, -40); fUserG.rotation.x = -tilt; 
+        const fUser = new THREE.Mesh(new THREE.BoxGeometry(deskWidth, 10, woodThick), userWoodMaterial);
+        fUser.position.set(0, -5, -woodThick/2); fUserG.add(fUser); surfaceGroup.add(fUserG);
+
+        // --- Tapa Posterior y Faldón (Material Posterior) ---
+        const backPlank = new THREE.Mesh(new THREE.BoxGeometry(deskWidth, woodThick, backPlankDepth), backWoodMaterial);
         backPlank.position.set(0, deskTopY - woodThick/2, (deskDepth/2) - (backPlankDepth/2));
         backPlank.castShadow = true; backPlank.receiveShadow = true;
         surfaceGroup.add(backPlank);
 
-        const tilt = Math.atan(10/75);
         const fMonitorG = new THREE.Group(); fMonitorG.position.set(0, 75, 40); fMonitorG.rotation.x = tilt; 
-        const fMonitor = new THREE.Mesh(new THREE.BoxGeometry(deskWidth, 20, woodThick), woodMaterial);
+        const fMonitor = new THREE.Mesh(new THREE.BoxGeometry(deskWidth, 20, woodThick), backWoodMaterial);
         fMonitor.position.set(0, -10, woodThick/2); fMonitorG.add(fMonitor); surfaceGroup.add(fMonitorG);
 
-        const fUserG = new THREE.Group(); fUserG.position.set(0, 75, -40); fUserG.rotation.x = -tilt; 
-        const fUser = new THREE.Mesh(new THREE.BoxGeometry(deskWidth, 10, woodThick), woodMaterial);
-        fUser.position.set(0, -5, -woodThick/2); fUserG.add(fUser); surfaceGroup.add(fUserG);
-
-        // --- Bandeja Técnica ---
+        // --- Estructura Metálica: Bandeja Técnica ---
         const gapZ = -(deskDepth/2) + userPlankDepth + (cableGapDepth/2);
         const trayProfile = new THREE.Shape();
         const th = 0.4, trayDepthVal = 16, highWall = 10, lowWall = 4;   
@@ -365,7 +400,6 @@
 
         function createChair() {
             const g = new THREE.Group();
-            // Base estrella
             const baseCenter = new THREE.Mesh(new THREE.CylinderGeometry(3, 4, 2, 8), metalBlackMaterial);
             baseCenter.position.y = 5; g.add(baseCenter);
             for(let i=0; i<5; i++){
@@ -375,21 +409,14 @@
                 const wheel = new THREE.Mesh(new THREE.SphereGeometry(2, 8, 8), leatherMaterial);
                 wheel.position.set(Math.sin(i*1.25)*25, 2, Math.cos(i*1.25)*25); g.add(wheel);
             }
-            // Piston (Altura ajustada: Un poco menos alta)
             const pistonH = 26;
             const piston = new THREE.Mesh(new THREE.CylinderGeometry(2, 2.2, pistonH, 16), silverMaterial);
             piston.position.y = 5 + (pistonH / 2); g.add(piston);
-            
-            // Asiento (Ajustado)
             const seatY = 5 + pistonH + 4;
             const seat = new THREE.Mesh(new THREE.BoxGeometry(45, 8, 45), leatherMaterial);
             seat.position.y = seatY; g.add(seat);
-            
-            // Respaldo
             const back = new THREE.Mesh(new THREE.BoxGeometry(45, 60, 8), leatherMaterial);
             back.position.set(0, seatY + 28, 22); back.rotation.x = -0.1; g.add(back);
-            
-            // Brazos
             for(let i=0; i<2; i++){
                 const side = i === 0 ? -25 : 25;
                 const arm = new THREE.Mesh(new THREE.BoxGeometry(4, 15, 20), leatherMaterial);
