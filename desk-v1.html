@@ -76,16 +76,18 @@
 <body>
     <div id="info">
         <h2>Visualizador de Escritorio Industrial</h2>
-        <p>Bandeja en "J" abierta (Sin cara superior) | Acceso lado usuario</p>
+        <p>Bandeja técnica alineada con el marco de las patas (10cm de altura)</p>
     </div>
     
     <div id="controls-ui">
+        <!-- Visualización -->
         <div class="control-box">
             <h3>🔍 Vista Estructural</h3>
             <button class="btn-toggle-view" onclick="toggleSurface()">Ocultar/Mostrar Tapas</button>
             <button onclick="toggleDimensions()">Ocultar/Mostrar Medidas</button>
         </div>
 
+        <!-- Panel de Accesorios -->
         <div class="control-box">
             <h3>🖥️ Accesorios</h3>
             <div class="item-toggle">
@@ -106,6 +108,7 @@
             </div>
         </div>
 
+        <!-- Selector de Madera -->
         <div class="control-box">
             <h3>🎨 Acabado</h3>
             <select id="woodSelector" onchange="changeWood(this.value)">
@@ -224,54 +227,48 @@
         fUser.position.set(0, -5, -woodThick/2); fUserG.add(fUser); 
         surfaceGroup.add(fUserG);
 
-        // --- BANDEJA TÉCNICA EN FORMA DE J (CORRECCIÓN GEOMÉTRICA) ---
+        // --- BANDEJA TÉCNICA EN FORMA DE J (CORREGIDA Y ALINEADA CON PATAS) ---
         const gapZ = -(deskDepth/2) + userPlankDepth + (cableGapDepth/2);
         
-        // Creamos la forma del metal (la chapa doblada) para que no tenga "cara superior"
         const trayProfile = new THREE.Shape();
-        const th = 0.5;      // Espesor de la chapa
-        const trayDepth = 18; // Profundidad total
-        const highWall = 12; // Pared trasera de anclaje
-        const lowWall = 4;   // Pared delantera de acceso
+        const th = 0.5;      
+        const trayDepth = 18; 
+        // MODIFICACIÓN: highWall ahora mide 10cm para coincidir con el marco de las patas
+        const highWall = 10; 
+        const lowWall = 4;   
 
-        // Perfil continuo: Empezamos en el borde superior de la pared alta (atrás)
-        // Al rotar la J, queremos que la pared alta esté en el lado positivo del escritorio (atrás)
-        // Por lo tanto, en el Shape, el lado con la pared alta estará en un extremo del eje X.
+        // Perfil Exterior
+        trayProfile.moveTo(-trayDepth/2, highWall);   
+        trayProfile.lineTo(-trayDepth/2, 0);          
+        trayProfile.lineTo(trayDepth/2, 0);           
+        trayProfile.lineTo(trayDepth/2, lowWall);     
         
-        // Caminamos por el borde exterior
-        trayProfile.moveTo(-trayDepth/2, highWall);   // 1. Tope trasero arriba
-        trayProfile.lineTo(-trayDepth/2, 0);          // 2. Esquina trasera abajo
-        trayProfile.lineTo(trayDepth/2, 0);           // 3. Esquina delantera abajo
-        trayProfile.lineTo(trayDepth/2, lowWall);     // 4. Tope delantero arriba (lip de la J)
+        // Perfil Interior para espesor
+        trayProfile.lineTo(trayDepth/2 - th, lowWall); 
+        trayProfile.lineTo(trayDepth/2 - th, th);      
+        trayProfile.lineTo(-trayDepth/2 + th, th);     
+        trayProfile.lineTo(-trayDepth/2 + th, highWall); 
         
-        // Caminamos por el borde interior para dar espesor
-        trayProfile.lineTo(trayDepth/2 - th, lowWall); // 5. Hacia adentro
-        trayProfile.lineTo(trayDepth/2 - th, th);      // 6. Bajamos al fondo interior
-        trayProfile.lineTo(-trayDepth/2 + th, th);     // 7. Vamos hacia atrás por el fondo interior
-        trayProfile.lineTo(-trayDepth/2 + th, highWall); // 8. Subimos por la pared trasera interior
-        
-        trayProfile.closePath(); // Cierra el metal, no el hueco de arriba
+        trayProfile.closePath(); 
 
         const trayGeo = new THREE.ExtrudeGeometry(trayProfile, { depth: innerGap, bevelEnabled: false });
         trayGeo.center();
         const tray = new THREE.Mesh(trayGeo, trayMaterial);
         
-        // Rotación: El perfil X-Y local se convierte en el plano vertical-profundidad (Y-Z world)
         tray.rotation.y = Math.PI/2; 
         
-        // Posicionamiento bajo la ranura
-        // La pared alta (highWall) queda en Z+ (atrás) y la baja (lowWall) en Z- (frente usuario)
+        // Posicionamiento: alineado con la parte superior de la estructura metálica (Y=72)
         tray.position.set(0, deskTopY - woodThick - (highWall/2), gapZ);
         tray.castShadow = true; tray.receiveShadow = true;
         deskGroup.add(tray);
 
         // Patas
         function createLeg() {
-            const hLeg = deskHeight - woodThick;
+            const hLeg = deskHeight - woodThick; // 72cm
             const s = new THREE.Shape();
             s.moveTo(-40, hLeg); s.lineTo(40, hLeg); s.lineTo(30, 0); s.lineTo(-30, 0); s.lineTo(-40, hLeg);
             const h = new THREE.Path();
-            const sideF = 6, topF = 10, botF = 6;
+            const sideF = 6, topF = 10, botF = 6; // topF es 10cm
             h.moveTo(-34, hLeg - topF); h.lineTo(-24, botF); h.lineTo(24, botF); h.lineTo(34, hLeg - topF); h.lineTo(-34, hLeg - topF);
             s.holes.push(h);
             const g = new THREE.ExtrudeGeometry(s, { depth: legThickness, bevelEnabled: true, bevelThickness: 0.2, bevelSize: 0.2, bevelSegments: 3 });
