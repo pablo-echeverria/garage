@@ -120,25 +120,45 @@
                 <div class="row">
                     <label>Principal</label>
                     <select id="userWoodSelector" onchange="changeWood('user', this.value)">
-                        <option value="black">Negro</option>
-                        <option value="wenge">Wengue</option>
-                        <option value="oak">Roble</option>
-                        <option value="walnut">Nogal</option>
-                        <option value="mahogany">Caoba</option>
-                        <option value="white">Blanco</option>
-                        <option value="grey">Gris</option>
+                        <option value="negro">Negro</option>
+                        <option value="wengue">Wengue</option>
+                        <option value="roble_oscuro">Roble Oscuro</option>
+                        <option value="roble_milano">Roble Milano</option>
+                        <option value="nogal_amazonico">Nogal Amazónico</option>
+                        <option value="nogal_africano">Nogal Africano</option>
+                        <option value="cerezo">Cerezo</option>
+                        <option value="maple">Maple</option>
+                        <option value="haya_natural">Haya Natural</option>
+                        <option value="cacao">Cacao</option>
+                        <option value="blanco">Blanco</option>
+                        <option value="gris">Gris</option>
+                        <option value="gris_grafito">Gris Grafito</option>
+                        <option value="roble_antracita">Roble Antracita</option>
+                        <option value="verde_oliva">Verde Oliva</option>
+                        <option value="azul_acero">Azul Acero</option>
+                        <option value="rojo_colonial">Rojo Colonial</option>
                     </select>
                 </div>
                 <div class="row">
                     <label>Posterior</label>
                     <select id="backWoodSelector" onchange="changeWood('back', this.value)">
-                        <option value="black">Negro</option>
-                        <option value="wenge">Wengue</option>
-                        <option value="oak">Roble</option>
-                        <option value="walnut">Nogal</option>
-                        <option value="mahogany">Caoba</option>
-                        <option value="white">Blanco</option>
-                        <option value="grey">Gris</option>
+                        <option value="negro">Negro</option>
+                        <option value="wengue">Wengue</option>
+                        <option value="roble_oscuro">Roble Oscuro</option>
+                        <option value="roble_milano">Roble Milano</option>
+                        <option value="nogal_amazonico">Nogal Amazónico</option>
+                        <option value="nogal_africano">Nogal Africano</option>
+                        <option value="cerezo">Cerezo</option>
+                        <option value="maple">Maple</option>
+                        <option value="haya_natural">Haya Natural</option>
+                        <option value="cacao">Cacao</option>
+                        <option value="blanco">Blanco</option>
+                        <option value="gris">Gris</option>
+                        <option value="gris_grafito">Gris Grafito</option>
+                        <option value="roble_antracita">Roble Antracita</option>
+                        <option value="verde_oliva">Verde Oliva</option>
+                        <option value="azul_acero">Azul Acero</option>
+                        <option value="rojo_colonial">Rojo Colonial</option>
                     </select>
                 </div>
             </div>
@@ -181,20 +201,27 @@
         scene.add(dirLight);
 
         const woodMaterials = {
-            black: { color: 0x111111, roughness: 0.9 },
-            wenge: { color: 0x221a15, roughness: 0.8 },
-            oak: { color: 0xE0C9A6, roughness: 0.6 },
-            walnut: { color: 0x5C4033, roughness: 0.7 },
-            mahogany: { color: 0x420D09, roughness: 0.6 },
-            white: { color: 0xFFFFFF, roughness: 0.4 },
-            grey: { color: 0x555555, roughness: 0.8 },
-            solid_navy: { color: 0x2c3e50, roughness: 0.5 },
-            solid_red: { color: 0x922B21, roughness: 0.5 },
-            solid_green: { color: 0x556b2f, roughness: 0.5 }
+            negro: { color: 0x1a1a1a, roughness: 0.9 },
+            wengue: { color: 0x3d2b1f, roughness: 0.8 },
+            roble_oscuro: { color: 0x4a3728, roughness: 0.7 },
+            roble_milano: { color: 0x8b5a2b, roughness: 0.6 },
+            nogal_amazonico: { color: 0x5d4037, roughness: 0.7 },
+            nogal_africano: { color: 0x4e3524, roughness: 0.7 },
+            cerezo: { color: 0x8b4513, roughness: 0.6 },
+            maple: { color: 0xdeb887, roughness: 0.5 },
+            haya_natural: { color: 0xe8dcc8, roughness: 0.5 },
+            cacao: { color: 0x3e2723, roughness: 0.8 },
+            blanco: { color: 0xf5f5f5, roughness: 0.4 },
+            gris: { color: 0x9e9e9e, roughness: 0.6 },
+            gris_grafito: { color: 0x424242, roughness: 0.7 },
+            roble_antracita: { color: 0x2e2e2e, roughness: 0.8 },
+            verde_oliva: { color: 0x6b8e23, roughness: 0.5 },
+            azul_acero: { color: 0x37474f, roughness: 0.6 },
+            rojo_colonial: { color: 0x8b0000, roughness: 0.6 }
         };
 
-        const userWoodMaterial = new THREE.MeshStandardMaterial({ color: woodMaterials.black.color, roughness: 0.9, side: THREE.DoubleSide });
-        const backWoodMaterial = new THREE.MeshStandardMaterial({ color: woodMaterials.black.color, roughness: 0.9, side: THREE.DoubleSide });
+        const userWoodMaterial = new THREE.MeshStandardMaterial({ color: woodMaterials.negro.color, roughness: 0.9, side: THREE.DoubleSide });
+        const backWoodMaterial = new THREE.MeshStandardMaterial({ color: woodMaterials.negro.color, roughness: 0.9, side: THREE.DoubleSide });
         const metalBlackMaterial = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.5, metalness: 0.7 });
         const silverMaterial = new THREE.MeshStandardMaterial({ color: 0xbbbbbb, roughness: 0.3, metalness: 0.8 });
         const leatherMaterial = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.8 });
