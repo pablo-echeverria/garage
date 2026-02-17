@@ -21,7 +21,6 @@
             padding-right: 15px;
         }
 
-        /* Estilo Translúcido y Colapsable */
         .control-box {
             background: rgba(255, 255, 255, 0.65);
             backdrop-filter: blur(10px);
@@ -105,7 +104,7 @@
 <body>
     <div id="controls-ui">
         <!-- Visualización -->
-        <details class="control-box" open>
+        <details class="control-box">
             <summary>🔍 VISTA ESTRUCTURAL</summary>
             <div class="content">
                 <button class="btn-toggle-view" onclick="toggleSurface()">Ocultar/Mostrar Tapas</button>
@@ -114,7 +113,7 @@
         </details>
 
         <!-- Panel de Accesorios -->
-        <details class="control-box" open>
+        <details class="control-box">
             <summary>🖥️ ACCESORIOS</summary>
             <div class="content">
                 <div class="item-toggle">
@@ -140,11 +139,34 @@
             </div>
         </details>
 
-        <!-- Selector de Madera Independiente -->
+        <!-- Nuevo Panel: Dimensiones Faldones -->
         <details class="control-box" open>
+            <summary>📏 MEDIDAS FALDONES</summary>
+            <div class="content">
+                <label>Faldón Frontal (Usuario)</label>
+                <select id="hFrontSelector" onchange="updateSkirts()">
+                    <option value="10">10 cm</option>
+                    <option value="15" selected>15 cm</option>
+                    <option value="20">20 cm</option>
+                    <option value="25">25 cm</option>
+                </select>
+
+                <label>Faldón Trasero</label>
+                <select id="hBackSelector" onchange="updateSkirts()">
+                    <option value="20">20 cm</option>
+                    <option value="25">25 cm</option>
+                    <option value="30" selected>30 cm</option>
+                    <option value="35">35 cm</option>
+                    <option value="40">40 cm</option>
+                </select>
+            </div>
+        </details>
+
+        <!-- Selector de Madera -->
+        <details class="control-box">
             <summary>🎨 ACABADO</summary>
             <div class="content">
-                <label for="userWoodSelector">Tapa Principal (55cm)</label>
+                <label>Tapa Principal (55cm)</label>
                 <select id="userWoodSelector" onchange="changeWood('user', this.value)">
                     <optgroup label="Maderas">
                         <option value="black">Negro Mate</option>
@@ -162,7 +184,7 @@
                     </optgroup>
                 </select>
 
-                <label for="backWoodSelector">Tapa Posterior (24cm)</label>
+                <label>Tapa Posterior (24cm)</label>
                 <select id="backWoodSelector" onchange="changeWood('back', this.value)">
                     <optgroup label="Maderas">
                         <option value="black">Negro Mate</option>
@@ -188,7 +210,6 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
     <script>
-        // --- Escena y Cámara ---
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0xf5f5f5);
 
@@ -220,7 +241,6 @@
         dirLight.shadow.camera.far = 1000;
         scene.add(dirLight);
 
-        // --- Materiales de Madera ---
         const woodMaterials = {
             black: { color: 0x111111, roughness: 0.9 },
             wenge: { color: 0x221a15, roughness: 0.8 },
@@ -234,10 +254,8 @@
             solid_green: { color: 0x556b2f, roughness: 0.5 }
         };
 
-        // Creamos dos materiales independientes
         const userWoodMaterial = new THREE.MeshStandardMaterial({ color: woodMaterials.black.color, roughness: 0.9, side: THREE.DoubleSide });
         const backWoodMaterial = new THREE.MeshStandardMaterial({ color: woodMaterials.black.color, roughness: 0.9, side: THREE.DoubleSide });
-
         const metalBlackMaterial = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.5, metalness: 0.7 });
         const silverMaterial = new THREE.MeshStandardMaterial({ color: 0xbbbbbb, roughness: 0.3, metalness: 0.8 });
         const leatherMaterial = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.8 });
@@ -257,40 +275,31 @@
 
         const deskGroup = new THREE.Group();
         scene.add(deskGroup);
-
         const surfaceGroup = new THREE.Group();
         deskGroup.add(surfaceGroup);
-        
         const itemsGroup = new THREE.Group();
         surfaceGroup.add(itemsGroup); 
+        const skirtsGroup = new THREE.Group(); // Grupo para faldones dinámicos
+        surfaceGroup.add(skirtsGroup);
 
         const deskWidth = 180, deskDepth = 80, deskHeight = 75, woodThick = 3.0, legThickness = 10;
         const innerGap = deskWidth - (legThickness * 2);
         const userPlankDepth = 55, backPlankDepth = 24, cableGapDepth = 1.0;
         const deskTopY = deskHeight;
 
-        // --- Tapa Principal y Faldón (Material Usuario) ---
+        // --- Tapa Principal ---
         const userPlank = new THREE.Mesh(new THREE.BoxGeometry(deskWidth, woodThick, userPlankDepth), userWoodMaterial);
         userPlank.position.set(0, deskTopY - woodThick/2, -(deskDepth/2) + (userPlankDepth/2));
         userPlank.castShadow = true; userPlank.receiveShadow = true;
         surfaceGroup.add(userPlank);
 
-        const tilt = Math.atan(10/75);
-        const fUserG = new THREE.Group(); fUserG.position.set(0, 75, -40); fUserG.rotation.x = -tilt; 
-        const fUser = new THREE.Mesh(new THREE.BoxGeometry(deskWidth, 10, woodThick), userWoodMaterial);
-        fUser.position.set(0, -5, -woodThick/2); fUserG.add(fUser); surfaceGroup.add(fUserG);
-
-        // --- Tapa Posterior y Faldón (Material Posterior) ---
+        // --- Tapa Posterior ---
         const backPlank = new THREE.Mesh(new THREE.BoxGeometry(deskWidth, woodThick, backPlankDepth), backWoodMaterial);
         backPlank.position.set(0, deskTopY - woodThick/2, (deskDepth/2) - (backPlankDepth/2));
         backPlank.castShadow = true; backPlank.receiveShadow = true;
         surfaceGroup.add(backPlank);
 
-        const fMonitorG = new THREE.Group(); fMonitorG.position.set(0, 75, 40); fMonitorG.rotation.x = tilt; 
-        const fMonitor = new THREE.Mesh(new THREE.BoxGeometry(deskWidth, 20, woodThick), backWoodMaterial);
-        fMonitor.position.set(0, -10, woodThick/2); fMonitorG.add(fMonitor); surfaceGroup.add(fMonitorG);
-
-        // --- Estructura Metálica: Bandeja Técnica ---
+        // --- Estructura Metálica: Bandeja ---
         const gapZ = -(deskDepth/2) + userPlankDepth + (cableGapDepth/2);
         const trayProfile = new THREE.Shape();
         const th = 0.4, trayDepthVal = 16, highWall = 10, lowWall = 4;   
@@ -342,12 +351,11 @@
         const l2 = createLeg(); l2.rotation.y = Math.PI/2; l2.position.set(legOffset, (deskHeight-woodThick)/2, 0); deskGroup.add(l2);
 
         // --- Cableado ---
-        const trayRightEnd = new THREE.Vector3(innerGap/2 - 2, trayBottomY - 0.5, gapZ - 2);
         const cableCurve = new THREE.CatmullRomCurve3([
             new THREE.Vector3(posLeft - 10, trayBottomY - 0.5, gapZ - 2),
             new THREE.Vector3(posCenter, trayBottomY - 0.5, gapZ - 2), 
             new THREE.Vector3(posRight, trayBottomY - 0.5, gapZ - 2),  
-            trayRightEnd,
+            new THREE.Vector3(innerGap/2 - 2, trayBottomY - 0.5, gapZ - 2),
             new THREE.Vector3(legOffset, deskTopY - woodThick - 5, gapZ),
             new THREE.Vector3(legOffset, deskTopY - woodThick - 5, -35),
             new THREE.Vector3(legOffset, deskHeight/2, -35), 
@@ -357,6 +365,75 @@
         ]);
         const cableTube = new THREE.Mesh(new THREE.TubeGeometry(cableCurve, 100, 0.4, 8, false), cableMaterial);
         cableTube.castShadow = true; deskGroup.add(cableTube);
+
+        // --- Faldones y Cotas Dinámicas ---
+        const dimGroup = new THREE.Group();
+        const dynamicDimGroup = new THREE.Group(); // Para cotas que cambian
+        scene.add(dimGroup);
+        scene.add(dynamicDimGroup);
+
+        function addDim(s, e, t, o, container = dimGroup) {
+            const p1 = new THREE.Vector3().copy(s).add(o), p2 = new THREE.Vector3().copy(e).add(o);
+            const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints([p1, p2]), new THREE.LineBasicMaterial({ color: 0xcc0000 }));
+            const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
+            canvas.width = 256; canvas.height = 64; ctx.font = "Bold 35px Arial"; ctx.fillStyle = "#cc0000"; ctx.textAlign = "center"; ctx.fillText(t, 128, 45);
+            const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas), transparent: true }));
+            sprite.scale.set(16, 4, 1); sprite.position.copy(new THREE.Vector3().addVectors(p1, p2).multiplyScalar(0.5)); sprite.position.y += 2.5;
+            container.add(new THREE.Group().add(line, sprite));
+        }
+
+        window.updateSkirts = () => {
+            // Limpiar faldones anteriores
+            while(skirtsGroup.children.length > 0) skirtsGroup.remove(skirtsGroup.children[0]);
+            while(dynamicDimGroup.children.length > 0) dynamicDimGroup.remove(dynamicDimGroup.children[0]);
+
+            const hFront = parseFloat(document.getElementById('hFrontSelector').value);
+            const hBack = parseFloat(document.getElementById('hBackSelector').value);
+            const tilt = Math.atan(10/75);
+
+            // Faldón Usuario
+            const fUserG = new THREE.Group(); 
+            fUserG.position.set(0, 75, -40); 
+            fUserG.rotation.x = -tilt; 
+            const fUser = new THREE.Mesh(new THREE.BoxGeometry(deskWidth, hFront, woodThick), userWoodMaterial);
+            fUser.position.set(0, -(hFront/2), -woodThick/2); 
+            fUserG.add(fUser); 
+            skirtsGroup.add(fUserG);
+
+            // Faldón Trasero
+            const fMonitorG = new THREE.Group(); 
+            fMonitorG.position.set(0, 75, 40); 
+            fMonitorG.rotation.x = tilt; 
+            const fMonitor = new THREE.Mesh(new THREE.BoxGeometry(deskWidth, hBack, woodThick), backWoodMaterial);
+            fMonitor.position.set(0, -(hBack/2), woodThick/2); 
+            fMonitorG.add(fMonitor); 
+            skirtsGroup.add(fMonitorG);
+
+            // Actualizar cotas dinámicas de faldones
+            addDim(new THREE.Vector3(0, 75 - hFront, -40), new THREE.Vector3(0, 75, -40), `${hFront} cm`, new THREE.Vector3(0, 0, -5), dynamicDimGroup);
+            addDim(new THREE.Vector3(0, 75 - hBack, 40), new THREE.Vector3(0, 75, 40), `${hBack} cm`, new THREE.Vector3(0, 0, 5), dynamicDimGroup);
+            
+            dynamicDimGroup.visible = dimGroup.visible;
+        };
+
+        // Cotas estáticas
+        addDim(new THREE.Vector3(-90, 75, -40), new THREE.Vector3(90, 75, -40), "180 cm", new THREE.Vector3(0, 15, 0));
+        addDim(new THREE.Vector3(90, 75, -40), new THREE.Vector3(90, 75, 40), "80 cm", new THREE.Vector3(15, 0, 0));
+        addDim(new THREE.Vector3(90, 0, 40), new THREE.Vector3(90, 75, 40), "75 cm", new THREE.Vector3(15, 0, 0));
+        const dOffset = new THREE.Vector3(10, 5, 0);
+        addDim(new THREE.Vector3(90, 75, -40), new THREE.Vector3(90, 75, 15), "55 cm", dOffset);
+        addDim(new THREE.Vector3(90, 75, 15), new THREE.Vector3(90, 75, 16), "1 cm", dOffset);
+        addDim(new THREE.Vector3(90, 75, 16), new THREE.Vector3(90, 75, 40), "24 cm", dOffset);
+        addDim(new THREE.Vector3(-90, 72, -40), new THREE.Vector3(-90, 75, -40), "3 cm", new THREE.Vector3(-10, 0, 0));
+
+        dimGroup.visible = false;
+        dynamicDimGroup.visible = false;
+
+        window.toggleDimensions = () => { 
+            dimGroup.visible = !dimGroup.visible; 
+            dynamicDimGroup.visible = dimGroup.visible;
+        };
+        window.toggleSurface = () => { surfaceGroup.visible = !surfaceGroup.visible; };
 
         // --- Accesorios ---
         function createMacBook() {
@@ -455,33 +532,6 @@
             }
         };
 
-        // --- Cotas ---
-        const dimGroup = new THREE.Group();
-        scene.add(dimGroup);
-        function addDim(s, e, t, o) {
-            const p1 = new THREE.Vector3().copy(s).add(o), p2 = new THREE.Vector3().copy(e).add(o);
-            const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints([p1, p2]), new THREE.LineBasicMaterial({ color: 0xcc0000 }));
-            const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
-            canvas.width = 256; canvas.height = 64; ctx.font = "Bold 35px Arial"; ctx.fillStyle = "#cc0000"; ctx.textAlign = "center"; ctx.fillText(t, 128, 45);
-            const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas), transparent: true }));
-            sprite.scale.set(16, 4, 1); sprite.position.copy(new THREE.Vector3().addVectors(p1, p2).multiplyScalar(0.5)); sprite.position.y += 2.5;
-            dimGroup.add(new THREE.Group().add(line, sprite));
-        }
-        addDim(new THREE.Vector3(-90, 75, -40), new THREE.Vector3(90, 75, -40), "180 cm", new THREE.Vector3(0, 15, 0));
-        addDim(new THREE.Vector3(90, 75, -40), new THREE.Vector3(90, 75, 40), "80 cm", new THREE.Vector3(15, 0, 0));
-        addDim(new THREE.Vector3(90, 0, 40), new THREE.Vector3(90, 75, 40), "75 cm", new THREE.Vector3(15, 0, 0));
-        const dOffset = new THREE.Vector3(10, 5, 0);
-        addDim(new THREE.Vector3(90, 75, -40), new THREE.Vector3(90, 75, 15), "55 cm", dOffset);
-        addDim(new THREE.Vector3(90, 75, 15), new THREE.Vector3(90, 75, 16), "1 cm", dOffset);
-        addDim(new THREE.Vector3(90, 75, 16), new THREE.Vector3(90, 75, 40), "24 cm", dOffset);
-        addDim(new THREE.Vector3(-90, 72, -40), new THREE.Vector3(-90, 75, -40), "3 cm", new THREE.Vector3(-10, 0, 0));
-        addDim(new THREE.Vector3(0, 65, -40), new THREE.Vector3(0, 75, -40), "10 cm", new THREE.Vector3(0, 0, -5));
-        addDim(new THREE.Vector3(0, 55, 40), new THREE.Vector3(0, 75, 40), "20 cm", new THREE.Vector3(0, 0, 5));
-        dimGroup.visible = false;
-
-        window.toggleDimensions = () => { dimGroup.visible = !dimGroup.visible; };
-        window.toggleSurface = () => { surfaceGroup.visible = !surfaceGroup.visible; };
-
         const ground = new THREE.Mesh(new THREE.PlaneGeometry(2000, 2000), new THREE.ShadowMaterial({ opacity: 0.15 }));
         ground.rotation.x = -Math.PI/2; ground.receiveShadow = true; scene.add(ground);
 
@@ -495,6 +545,9 @@
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
+        
+        // Inicialización
+        updateSkirts();
         animate();
     </script>
 </body>
