@@ -5,40 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Escritorio Industrial 3D - Setup Final</title>
     <style>
-        body { margin: 0; overflow: hidden; background-color: #f0f0f0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        
+        body { margin: 0; overflow: hidden; background-color: #f0f0f0; font-family: system-ui, sans-serif; }
+
         #controls-ui {
             position: absolute;
-            bottom: 20px;
-            left: 20px;
+            bottom: 10px;
+            left: 10px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 4px;
             pointer-events: none;
             z-index: 20;
             max-height: 90vh;
             overflow-y: auto;
-            padding-right: 15px;
         }
 
         .control-box {
-            background: rgba(255, 255, 255, 0.65);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            border-radius: 12px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            background: rgba(255, 255, 255, 0.85);
             pointer-events: auto;
-            min-width: 240px;
-            transition: all 0.3s ease;
+            min-width: 160px;
         }
 
         summary {
-            padding: 12px 15px;
+            padding: 6px 8px;
             cursor: pointer;
-            font-size: 14px;
-            font-weight: 700;
-            color: #222;
+            font-size: 11px;
+            font-weight: 600;
+            color: #333;
             list-style: none;
             outline: none;
             display: flex;
@@ -47,161 +40,125 @@
             user-select: none;
         }
         summary::-webkit-details-marker { display: none; }
-        summary::after { content: '▼'; font-size: 10px; transition: transform 0.3s; opacity: 0.5; }
-        details[open] summary::after { transform: rotate(180deg); }
+        summary::after { content: '▾'; font-size: 9px; opacity: 0.5; }
+        details[open] summary::after { content: '▴'; }
 
-        .content {
-            padding: 0 15px 15px 15px;
-            border-top: 1px solid rgba(0,0,0,0.05);
-            padding-top: 12px;
-        }
+        .content { padding: 4px 8px 8px; }
 
-        label {
-            display: block;
-            font-size: 11px;
-            font-weight: 700;
-            color: #666;
-            margin-bottom: 4px;
-            text-transform: uppercase;
-        }
-
-        select, button {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 12px;
-            border: 1px solid rgba(0,0,0,0.1);
-            border-radius: 8px;
-            font-size: 13px;
-            outline: none;
-            cursor: pointer;
-            background: rgba(255, 255, 255, 0.8);
-            font-weight: 600;
-            color: #333;
-            transition: background 0.2s;
-        }
-        button:hover { background: #fff; }
-        
-        .btn-toggle-view {
-            background: #facc15; 
-            color: #000;
-            border: none;
-        }
-        .btn-toggle-view:hover { background: #eab308; }
-
-        .item-toggle {
+        .row {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            font-size: 13px;
+            gap: 6px;
+            margin-bottom: 4px;
+            font-size: 10px;
             color: #444;
         }
-        .item-toggle input { cursor: pointer; width: 18px; height: 18px; }
+        .row:last-child { margin-bottom: 0; }
+        .row input[type="checkbox"] { cursor: pointer; width: 14px; height: 14px; margin: 0; }
+        .row select {
+            flex: 1;
+            padding: 3px 4px;
+            font-size: 10px;
+            border: none;
+            background: rgba(0,0,0,0.05);
+            outline: none;
+            cursor: pointer;
+        }
+        .row label { font-size: 10px; color: #555; flex-shrink: 0; }
 
-        .help-text { font-size: 11px; color: #666; margin-top: 5px; text-align: center; }
+        #toggle-panel {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(255,255,255,0.85);
+            padding: 4px 8px;
+            font-size: 10px;
+            cursor: pointer;
+            z-index: 25;
+            display: none;
+        }
+
+        @media (max-width: 480px) {
+            #controls-ui.hidden { display: none; }
+            #toggle-panel { display: block; }
+            #toggle-panel.expanded { display: none; }
+        }
     </style>
 </head>
 <body>
+    <div id="toggle-panel" onclick="toggleControls()">☰ Opciones</div>
     <div id="controls-ui">
-        <!-- Visualización -->
         <details class="control-box">
-            <summary>🔍 VISTA ESTRUCTURAL</summary>
+            <summary>Vista</summary>
             <div class="content">
-                <button class="btn-toggle-view" onclick="toggleSurface()">Ocultar/Mostrar Tapas</button>
-                <button onclick="toggleDimensions()">Ocultar/Mostrar Medidas</button>
+                <div class="row"><input type="checkbox" id="check-surface" checked onchange="toggleSurface()"><label>Tapas</label></div>
+                <div class="row"><input type="checkbox" id="check-dims" onchange="toggleDimensions()"><label>Medidas</label></div>
             </div>
         </details>
 
-        <!-- Panel de Accesorios -->
         <details class="control-box">
-            <summary>🖥️ ACCESORIOS</summary>
+            <summary>Accesorios</summary>
             <div class="content">
-                <div class="item-toggle">
-                    <span>Silla</span>
-                    <input type="checkbox" id="check-chair" onchange="updateItems()">
-                </div>
-                <div class="item-toggle">
-                    <span>Laptop</span>
-                    <input type="checkbox" id="check-laptop" onchange="updateItems()">
-                </div>
-                <div class="item-toggle">
-                    <span>Monitor (Base)</span>
-                    <input type="checkbox" id="check-monitor" onchange="updateItems()">
-                </div>
-                <div class="item-toggle">
-                    <span>Monitor (Brazo)</span>
-                    <input type="checkbox" id="check-arm-monitor" onchange="updateItems()">
-                </div>
-                <div class="item-toggle">
-                    <span>Lámpara</span>
-                    <input type="checkbox" id="check-lamp" onchange="updateItems()">
-                </div>
+                <div class="row"><input type="checkbox" id="check-chair" onchange="updateItems()"><label>Silla</label></div>
+                <div class="row"><input type="checkbox" id="check-laptop" onchange="updateItems()"><label>Laptop</label></div>
+                <div class="row"><input type="checkbox" id="check-monitor" onchange="updateItems()"><label>Monitor base</label></div>
+                <div class="row"><input type="checkbox" id="check-arm-monitor" onchange="updateItems()"><label>Monitor brazo</label></div>
+                <div class="row"><input type="checkbox" id="check-lamp" onchange="updateItems()"><label>Lámpara</label></div>
             </div>
         </details>
 
-        <!-- Nuevo Panel: Dimensiones Faldones -->
         <details class="control-box" open>
-            <summary>📏 MEDIDAS FALDONES</summary>
+            <summary>Faldones</summary>
             <div class="content">
-                <label>Faldón Frontal (Usuario)</label>
-                <select id="hFrontSelector" onchange="updateSkirts()">
-                    <option value="10">10 cm</option>
-                    <option value="15" selected>15 cm</option>
-                    <option value="20">20 cm</option>
-                    <option value="25">25 cm</option>
-                </select>
-
-                <label>Faldón Trasero</label>
-                <select id="hBackSelector" onchange="updateSkirts()">
-                    <option value="20">20 cm</option>
-                    <option value="25">25 cm</option>
-                    <option value="30" selected>30 cm</option>
-                    <option value="35">35 cm</option>
-                    <option value="40">40 cm</option>
-                </select>
+                <div class="row">
+                    <label>Frontal</label>
+                    <select id="hFrontSelector" onchange="updateSkirts()">
+                        <option value="10">10cm</option>
+                        <option value="15" selected>15cm</option>
+                        <option value="20">20cm</option>
+                        <option value="25">25cm</option>
+                    </select>
+                </div>
+                <div class="row">
+                    <label>Trasero</label>
+                    <select id="hBackSelector" onchange="updateSkirts()">
+                        <option value="20">20cm</option>
+                        <option value="25">25cm</option>
+                        <option value="30" selected>30cm</option>
+                        <option value="35">35cm</option>
+                        <option value="40">40cm</option>
+                    </select>
+                </div>
             </div>
         </details>
 
-        <!-- Selector de Madera -->
         <details class="control-box">
-            <summary>🎨 ACABADO</summary>
+            <summary>Acabado</summary>
             <div class="content">
-                <label>Tapa Principal (55cm)</label>
-                <select id="userWoodSelector" onchange="changeWood('user', this.value)">
-                    <optgroup label="Maderas">
-                        <option value="black">Negro Mate</option>
+                <div class="row">
+                    <label>Principal</label>
+                    <select id="userWoodSelector" onchange="changeWood('user', this.value)">
+                        <option value="black">Negro</option>
                         <option value="wenge">Wengue</option>
-                        <option value="oak">Roble Claro</option>
-                        <option value="walnut">Nogal Americano</option>
-                        <option value="mahogany">Caoba Rojizo</option>
-                        <option value="white">Blanco Minimalista</option>
-                        <option value="grey">Gris Cemento</option>
-                    </optgroup>
-                    <optgroup label="Colores Sólidos">
-                        <option value="solid_navy">Azul Marino</option>
-                        <option value="solid_red">Rojo Vino</option>
-                        <option value="solid_green">Verde Oliva</option>
-                    </optgroup>
-                </select>
-
-                <label>Tapa Posterior (24cm)</label>
-                <select id="backWoodSelector" onchange="changeWood('back', this.value)">
-                    <optgroup label="Maderas">
-                        <option value="black">Negro Mate</option>
+                        <option value="oak">Roble</option>
+                        <option value="walnut">Nogal</option>
+                        <option value="mahogany">Caoba</option>
+                        <option value="white">Blanco</option>
+                        <option value="grey">Gris</option>
+                    </select>
+                </div>
+                <div class="row">
+                    <label>Posterior</label>
+                    <select id="backWoodSelector" onchange="changeWood('back', this.value)">
+                        <option value="black">Negro</option>
                         <option value="wenge">Wengue</option>
-                        <option value="oak">Roble Claro</option>
-                        <option value="walnut">Nogal Americano</option>
-                        <option value="mahogany">Caoba Rojizo</option>
-                        <option value="white">Blanco Minimalista</option>
-                        <option value="grey">Gris Cemento</option>
-                    </optgroup>
-                    <optgroup label="Colores Sólidos">
-                        <option value="solid_navy">Azul Marino</option>
-                        <option value="solid_red">Rojo Vino</option>
-                        <option value="solid_green">Verde Oliva</option>
-                    </optgroup>
-                </select>
-                <div class="help-text">🖱️ Rotar | 🖱️ Zoom</div>
+                        <option value="oak">Roble</option>
+                        <option value="walnut">Nogal</option>
+                        <option value="mahogany">Caoba</option>
+                        <option value="white">Blanco</option>
+                        <option value="grey">Gris</option>
+                    </select>
+                </div>
             </div>
         </details>
     </div>
@@ -214,7 +171,7 @@
         scene.background = new THREE.Color(0xf5f5f5);
 
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 2000);
-        camera.position.set(-250, 180, -250); 
+        camera.position.set(-250, 180, -250);
 
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -229,7 +186,7 @@
         controls.maxPolarAngle = Math.PI - 0.1;
 
         scene.add(new THREE.AmbientLight(0xffffff, 0.7));
-        
+
         const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
         dirLight.position.set(-80, 200, -80);
         dirLight.castShadow = true;
@@ -278,7 +235,7 @@
         const surfaceGroup = new THREE.Group();
         deskGroup.add(surfaceGroup);
         const itemsGroup = new THREE.Group();
-        surfaceGroup.add(itemsGroup); 
+        surfaceGroup.add(itemsGroup);
         const skirtsGroup = new THREE.Group(); // Grupo para faldones dinámicos
         surfaceGroup.add(skirtsGroup);
 
@@ -302,14 +259,14 @@
         // --- Estructura Metálica: Bandeja ---
         const gapZ = -(deskDepth/2) + userPlankDepth + (cableGapDepth/2);
         const trayProfile = new THREE.Shape();
-        const th = 0.4, trayDepthVal = 16, highWall = 10, lowWall = 4;   
-        trayProfile.moveTo(-trayDepthVal/2, highWall); trayProfile.lineTo(-trayDepthVal/2, 0); trayProfile.lineTo(trayDepthVal/2, 0); trayProfile.lineTo(trayDepthVal/2, lowWall);     
-        trayProfile.lineTo(trayDepthVal/2 - th, lowWall); trayProfile.lineTo(trayDepthVal/2 - th, th); trayProfile.lineTo(-trayDepthVal/2 + th, th); trayProfile.lineTo(-trayDepthVal/2 + th, highWall); 
-        trayProfile.closePath(); 
+        const th = 0.4, trayDepthVal = 16, highWall = 10, lowWall = 4;
+        trayProfile.moveTo(-trayDepthVal/2, highWall); trayProfile.lineTo(-trayDepthVal/2, 0); trayProfile.lineTo(trayDepthVal/2, 0); trayProfile.lineTo(trayDepthVal/2, lowWall);
+        trayProfile.lineTo(trayDepthVal/2 - th, lowWall); trayProfile.lineTo(trayDepthVal/2 - th, th); trayProfile.lineTo(-trayDepthVal/2 + th, th); trayProfile.lineTo(-trayDepthVal/2 + th, highWall);
+        trayProfile.closePath();
         const trayGeo = new THREE.ExtrudeGeometry(trayProfile, { depth: innerGap, bevelEnabled: false });
         trayGeo.center();
         const tray = new THREE.Mesh(trayGeo, trayMaterial);
-        tray.rotation.y = Math.PI/2; 
+        tray.rotation.y = Math.PI/2;
         tray.position.set(0, deskTopY - woodThick - (highWall/2) - 0.2, gapZ);
         tray.castShadow = true; tray.receiveShadow = true;
         deskGroup.add(tray);
@@ -327,7 +284,7 @@
             group.rotation.x = -Math.PI / 2;
             return group;
         }
-        const trayBottomY = deskTopY - woodThick - highWall + 1.2; 
+        const trayBottomY = deskTopY - woodThick - highWall + 1.2;
         const posLeft = -50, posCenter = 0, posRight = 50;
         [posLeft, posCenter, posRight].forEach(x => {
             const pair = createSocketPair(); pair.position.set(x, trayBottomY, gapZ); deskGroup.add(pair);
@@ -335,32 +292,32 @@
 
         // --- Patas ---
         function createLeg() {
-            const hLeg = deskHeight - woodThick; 
+            const hLeg = deskHeight - woodThick;
             const s = new THREE.Shape();
             s.moveTo(-40, hLeg); s.lineTo(40, hLeg); s.lineTo(30, 0); s.lineTo(-30, 0); s.lineTo(-40, hLeg);
             const h = new THREE.Path();
-            const topF = 10, sideF = 6, botF = 6; 
+            const topF = 10, sideF = 6, botF = 6;
             h.moveTo(-34, hLeg - topF); h.lineTo(-24, botF); h.lineTo(24, botF); h.lineTo(34, hLeg - topF); h.lineTo(-34, hLeg - topF);
             s.holes.push(h);
             const g = new THREE.ExtrudeGeometry(s, { depth: legThickness, bevelEnabled: true, bevelThickness: 0.2, bevelSize: 0.2, bevelSegments: 3 });
             g.center();
             const m = new THREE.Mesh(g, metalBlackMaterial); m.castShadow = true; return m;
         }
-        const legOffset = (deskWidth / 2) - (legThickness / 2); 
+        const legOffset = (deskWidth / 2) - (legThickness / 2);
         const l1 = createLeg(); l1.rotation.y = Math.PI/2; l1.position.set(-legOffset, (deskHeight-woodThick)/2, 0); deskGroup.add(l1);
         const l2 = createLeg(); l2.rotation.y = Math.PI/2; l2.position.set(legOffset, (deskHeight-woodThick)/2, 0); deskGroup.add(l2);
 
         // --- Cableado ---
         const cableCurve = new THREE.CatmullRomCurve3([
             new THREE.Vector3(posLeft - 10, trayBottomY - 0.5, gapZ - 2),
-            new THREE.Vector3(posCenter, trayBottomY - 0.5, gapZ - 2), 
-            new THREE.Vector3(posRight, trayBottomY - 0.5, gapZ - 2),  
+            new THREE.Vector3(posCenter, trayBottomY - 0.5, gapZ - 2),
+            new THREE.Vector3(posRight, trayBottomY - 0.5, gapZ - 2),
             new THREE.Vector3(innerGap/2 - 2, trayBottomY - 0.5, gapZ - 2),
             new THREE.Vector3(legOffset, deskTopY - woodThick - 5, gapZ),
             new THREE.Vector3(legOffset, deskTopY - woodThick - 5, -35),
-            new THREE.Vector3(legOffset, deskHeight/2, -35), 
-            new THREE.Vector3(legOffset, 0.4, -35), 
-            new THREE.Vector3(legOffset + 5, 0.4, -45), 
+            new THREE.Vector3(legOffset, deskHeight/2, -35),
+            new THREE.Vector3(legOffset, 0.4, -35),
+            new THREE.Vector3(legOffset + 5, 0.4, -45),
             new THREE.Vector3(legOffset + 25, 0.4, -65)
         ]);
         const cableTube = new THREE.Mesh(new THREE.TubeGeometry(cableCurve, 100, 0.4, 8, false), cableMaterial);
@@ -392,27 +349,27 @@
             const tilt = Math.atan(10/75);
 
             // Faldón Usuario
-            const fUserG = new THREE.Group(); 
-            fUserG.position.set(0, 75, -40); 
-            fUserG.rotation.x = -tilt; 
+            const fUserG = new THREE.Group();
+            fUserG.position.set(0, 75, -40);
+            fUserG.rotation.x = -tilt;
             const fUser = new THREE.Mesh(new THREE.BoxGeometry(deskWidth, hFront, woodThick), userWoodMaterial);
-            fUser.position.set(0, -(hFront/2), -woodThick/2); 
-            fUserG.add(fUser); 
+            fUser.position.set(0, -(hFront/2), -woodThick/2);
+            fUserG.add(fUser);
             skirtsGroup.add(fUserG);
 
             // Faldón Trasero
-            const fMonitorG = new THREE.Group(); 
-            fMonitorG.position.set(0, 75, 40); 
-            fMonitorG.rotation.x = tilt; 
+            const fMonitorG = new THREE.Group();
+            fMonitorG.position.set(0, 75, 40);
+            fMonitorG.rotation.x = tilt;
             const fMonitor = new THREE.Mesh(new THREE.BoxGeometry(deskWidth, hBack, woodThick), backWoodMaterial);
-            fMonitor.position.set(0, -(hBack/2), woodThick/2); 
-            fMonitorG.add(fMonitor); 
+            fMonitor.position.set(0, -(hBack/2), woodThick/2);
+            fMonitorG.add(fMonitor);
             skirtsGroup.add(fMonitorG);
 
             // Actualizar cotas dinámicas de faldones
             addDim(new THREE.Vector3(0, 75 - hFront, -40), new THREE.Vector3(0, 75, -40), `${hFront} cm`, new THREE.Vector3(0, 0, -5), dynamicDimGroup);
             addDim(new THREE.Vector3(0, 75 - hBack, 40), new THREE.Vector3(0, 75, 40), `${hBack} cm`, new THREE.Vector3(0, 0, 5), dynamicDimGroup);
-            
+
             dynamicDimGroup.visible = dimGroup.visible;
         };
 
@@ -429,11 +386,17 @@
         dimGroup.visible = false;
         dynamicDimGroup.visible = false;
 
-        window.toggleDimensions = () => { 
-            dimGroup.visible = !dimGroup.visible; 
+        window.toggleDimensions = () => {
+            dimGroup.visible = document.getElementById('check-dims').checked;
             dynamicDimGroup.visible = dimGroup.visible;
         };
-        window.toggleSurface = () => { surfaceGroup.visible = !surfaceGroup.visible; };
+        window.toggleSurface = () => { surfaceGroup.visible = document.getElementById('check-surface').checked; };
+        window.toggleControls = () => {
+            const ui = document.getElementById('controls-ui');
+            const btn = document.getElementById('toggle-panel');
+            ui.classList.toggle('hidden');
+            btn.classList.toggle('expanded');
+        };
 
         // --- Accesorios ---
         function createMacBook() {
@@ -443,7 +406,7 @@
             const kb = new THREE.Mesh(new THREE.BoxGeometry(28, 0.1, 10), new THREE.MeshStandardMaterial({ color: 0x111111 }));
             kb.position.set(0, 1.05, -2); group.add(kb);
             const lidPivot = new THREE.Group();
-            lidPivot.position.set(0, 1, 12); 
+            lidPivot.position.set(0, 1, 12);
             const lid = new THREE.Mesh(new THREE.BoxGeometry(34, 0.6, 24), silverMaterial);
             lid.position.set(0, 0, -12); lidPivot.add(lid);
             const screen = new THREE.Mesh(new THREE.BoxGeometry(32, 22, 0.1), new THREE.MeshStandardMaterial({ color: 0x050505, roughness: 0.1 }));
@@ -507,7 +470,7 @@
             const g = new THREE.Group();
             const base = new THREE.Mesh(new THREE.CylinderGeometry(8, 8, 1, 32), metalBlackMaterial);
             const neck = new THREE.Mesh(new THREE.BoxGeometry(2, 40, 2), metalBlackMaterial);
-            neck.position.set(0, 20, 0); neck.rotation.z = -0.2; 
+            neck.position.set(0, 20, 0); neck.rotation.z = -0.2;
             const head = new THREE.Mesh(new THREE.BoxGeometry(25, 2, 5), metalBlackMaterial);
             head.position.set(-10, 40, 0); g.add(base, neck, head);
             return g;
@@ -545,7 +508,7 @@
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
-        
+
         // Inicialización
         updateSkirts();
         animate();
