@@ -95,6 +95,8 @@
                 <div class="row">
                     <label>Frontal</label>
                     <select id="hFrontSelector" onchange="updateSkirts()">
+                        <option value="0">0cm</option>
+                        <option value="5">5cm</option>
                         <option value="10">10cm</option>
                         <option value="15" selected>15cm</option>
                         <option value="20">20cm</option>
@@ -380,26 +382,28 @@
             const tilt = Math.atan(10/75);
 
             // Faldón Usuario
-            const fUserG = new THREE.Group();
-            fUserG.position.set(0, 75, -40);
-            fUserG.rotation.x = -tilt;
-            const fUser = new THREE.Mesh(new THREE.BoxGeometry(deskWidth, hFront, woodThick), userWoodMaterial);
-            fUser.position.set(0, -(hFront/2), -woodThick/2);
-            fUserG.add(fUser);
-            skirtsGroup.add(fUserG);
+            if (hFront > 0) {
+                const fUserG = new THREE.Group();
+                fUserG.position.set(0, 75, -40);
+                fUserG.rotation.x = -tilt;
+                const fUser = new THREE.Mesh(new THREE.BoxGeometry(deskWidth, hFront, woodThick), userWoodMaterial);
+                fUser.position.set(0, -(hFront/2), -woodThick/2);
+                fUserG.add(fUser);
+                skirtsGroup.add(fUserG);
+                addDim(new THREE.Vector3(0, 75 - hFront, -40), new THREE.Vector3(0, 75, -40), `${hFront} cm`, new THREE.Vector3(0, 0, -5), dynamicDimGroup);
+            }
 
             // Faldón Trasero
-            const fMonitorG = new THREE.Group();
-            fMonitorG.position.set(0, 75, 40);
-            fMonitorG.rotation.x = tilt;
-            const fMonitor = new THREE.Mesh(new THREE.BoxGeometry(deskWidth, hBack, woodThick), backWoodMaterial);
-            fMonitor.position.set(0, -(hBack/2), woodThick/2);
-            fMonitorG.add(fMonitor);
-            skirtsGroup.add(fMonitorG);
-
-            // Actualizar cotas dinámicas de faldones
-            addDim(new THREE.Vector3(0, 75 - hFront, -40), new THREE.Vector3(0, 75, -40), `${hFront} cm`, new THREE.Vector3(0, 0, -5), dynamicDimGroup);
-            addDim(new THREE.Vector3(0, 75 - hBack, 40), new THREE.Vector3(0, 75, 40), `${hBack} cm`, new THREE.Vector3(0, 0, 5), dynamicDimGroup);
+            if (hBack > 0) {
+                const fMonitorG = new THREE.Group();
+                fMonitorG.position.set(0, 75, 40);
+                fMonitorG.rotation.x = tilt;
+                const fMonitor = new THREE.Mesh(new THREE.BoxGeometry(deskWidth, hBack, woodThick), backWoodMaterial);
+                fMonitor.position.set(0, -(hBack/2), woodThick/2);
+                fMonitorG.add(fMonitor);
+                skirtsGroup.add(fMonitorG);
+                addDim(new THREE.Vector3(0, 75 - hBack, 40), new THREE.Vector3(0, 75, 40), `${hBack} cm`, new THREE.Vector3(0, 0, 5), dynamicDimGroup);
+            }
 
             dynamicDimGroup.visible = dimGroup.visible;
         };
