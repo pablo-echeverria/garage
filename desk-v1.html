@@ -289,6 +289,17 @@
 
         const userPlankGeo = new THREE.ExtrudeGeometry(userPlankShape, { depth: woodThick, bevelEnabled: false });
         userPlankGeo.rotateX(-Math.PI/2);
+        // Corte 45° en borde trasero (Z positivo, Y positivo)
+        const posUser = userPlankGeo.attributes.position;
+        for (let i = 0; i < posUser.count; i++) {
+            const z = posUser.getZ(i);
+            const y = posUser.getY(i);
+            if (z > userPlankDepth/2 - 0.1 && y > 0) {
+                posUser.setZ(i, z - woodThick);
+            }
+        }
+        posUser.needsUpdate = true;
+        userPlankGeo.computeVertexNormals();
         const userPlank = new THREE.Mesh(userPlankGeo, userWoodMaterial);
         userPlank.position.set(0, deskTopY - woodThick, -(deskDepth/2) + (userPlankDepth/2));
         userPlank.castShadow = true; userPlank.receiveShadow = true;
