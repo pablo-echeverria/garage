@@ -187,6 +187,7 @@
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
+        controls.zoomSpeed = 0.5;
         controls.maxPolarAngle = Math.PI - 0.1;
 
         scene.add(new THREE.AmbientLight(0xffffff, 0.7));
