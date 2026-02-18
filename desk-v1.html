@@ -255,20 +255,42 @@
         const userPlankDepth = 55, backPlankDepth = 24, cableGapDepth = 1.0;
         const deskTopY = deskHeight;
 
-        // --- Tapa Principal (corte 45° en borde trasero hacia abajo) ---
-        const userPlankGeo = new THREE.BoxGeometry(deskWidth, woodThick, userPlankDepth);
-        const pos = userPlankGeo.attributes.position;
-        for (let i = 0; i < pos.count; i++) {
-            const z = pos.getZ(i);
-            const y = pos.getY(i);
-            if (z > 0 && y > 0) {
-                pos.setZ(i, z - woodThick);
-            }
-        }
-        pos.needsUpdate = true;
-        userPlankGeo.computeVertexNormals();
+        // --- Tapa Principal (con ranuras cortadas y corte 45° en borde trasero) ---
+        const slotWidth = 1.5, slotLength = 5.5;
+        const slotXOffset = 60; // distancia desde los bordes
+
+        const userPlankShape = new THREE.Shape();
+        userPlankShape.moveTo(-deskWidth/2, -userPlankDepth/2);
+        userPlankShape.lineTo(deskWidth/2, -userPlankDepth/2);
+        userPlankShape.lineTo(deskWidth/2, userPlankDepth/2);
+        userPlankShape.lineTo(-deskWidth/2, userPlankDepth/2);
+        userPlankShape.closePath();
+
+        // Ranura izquierda (desplazada 10cm hacia faldón frontal)
+        const hole1 = new THREE.Path();
+        const slot1X = -deskWidth/2 + slotXOffset;
+        const slotZOffset = -10; // desplazamiento hacia faldón frontal
+        hole1.moveTo(slot1X - slotWidth/2, -slotLength/2 + slotZOffset);
+        hole1.lineTo(slot1X + slotWidth/2, -slotLength/2 + slotZOffset);
+        hole1.lineTo(slot1X + slotWidth/2, slotLength/2 + slotZOffset);
+        hole1.lineTo(slot1X - slotWidth/2, slotLength/2 + slotZOffset);
+        hole1.closePath();
+        userPlankShape.holes.push(hole1);
+
+        // Ranura derecha (desplazada 10cm hacia faldón frontal)
+        const hole2 = new THREE.Path();
+        const slot2X = deskWidth/2 - slotXOffset;
+        hole2.moveTo(slot2X - slotWidth/2, -slotLength/2 + slotZOffset);
+        hole2.lineTo(slot2X + slotWidth/2, -slotLength/2 + slotZOffset);
+        hole2.lineTo(slot2X + slotWidth/2, slotLength/2 + slotZOffset);
+        hole2.lineTo(slot2X - slotWidth/2, slotLength/2 + slotZOffset);
+        hole2.closePath();
+        userPlankShape.holes.push(hole2);
+
+        const userPlankGeo = new THREE.ExtrudeGeometry(userPlankShape, { depth: woodThick, bevelEnabled: false });
+        userPlankGeo.rotateX(-Math.PI/2);
         const userPlank = new THREE.Mesh(userPlankGeo, userWoodMaterial);
-        userPlank.position.set(0, deskTopY - woodThick/2, -(deskDepth/2) + (userPlankDepth/2));
+        userPlank.position.set(0, deskTopY - woodThick, -(deskDepth/2) + (userPlankDepth/2));
         userPlank.castShadow = true; userPlank.receiveShadow = true;
         surfaceGroup.add(userPlank);
 
