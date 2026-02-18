@@ -253,14 +253,36 @@
         const userPlankDepth = 55, backPlankDepth = 24, cableGapDepth = 1.0;
         const deskTopY = deskHeight;
 
-        // --- Tapa Principal ---
-        const userPlank = new THREE.Mesh(new THREE.BoxGeometry(deskWidth, woodThick, userPlankDepth), userWoodMaterial);
+        // --- Tapa Principal (corte 45° en borde trasero hacia abajo) ---
+        const userPlankGeo = new THREE.BoxGeometry(deskWidth, woodThick, userPlankDepth);
+        const pos = userPlankGeo.attributes.position;
+        for (let i = 0; i < pos.count; i++) {
+            const z = pos.getZ(i);
+            const y = pos.getY(i);
+            if (z > 0 && y > 0) {
+                pos.setZ(i, z - woodThick);
+            }
+        }
+        pos.needsUpdate = true;
+        userPlankGeo.computeVertexNormals();
+        const userPlank = new THREE.Mesh(userPlankGeo, userWoodMaterial);
         userPlank.position.set(0, deskTopY - woodThick/2, -(deskDepth/2) + (userPlankDepth/2));
         userPlank.castShadow = true; userPlank.receiveShadow = true;
         surfaceGroup.add(userPlank);
 
-        // --- Tapa Posterior ---
-        const backPlank = new THREE.Mesh(new THREE.BoxGeometry(deskWidth, woodThick, backPlankDepth), backWoodMaterial);
+        // --- Tapa Posterior (corte 45° paralelo a tapa grande) ---
+        const backPlankGeo = new THREE.BoxGeometry(deskWidth, woodThick, backPlankDepth);
+        const posBack = backPlankGeo.attributes.position;
+        for (let i = 0; i < posBack.count; i++) {
+            const z = posBack.getZ(i);
+            const y = posBack.getY(i);
+            if (z < 0 && y < 0) {
+                posBack.setZ(i, z + woodThick);
+            }
+        }
+        posBack.needsUpdate = true;
+        backPlankGeo.computeVertexNormals();
+        const backPlank = new THREE.Mesh(backPlankGeo, backWoodMaterial);
         backPlank.position.set(0, deskTopY - woodThick/2, (deskDepth/2) - (backPlankDepth/2));
         backPlank.castShadow = true; backPlank.receiveShadow = true;
         surfaceGroup.add(backPlank);
