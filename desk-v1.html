@@ -440,6 +440,20 @@
         addDim(new THREE.Vector3(90, 75, 16), new THREE.Vector3(90, 75, 40), "24 cm", dOffset);
         addDim(new THREE.Vector3(-90, 72, -40), new THREE.Vector3(-90, 75, -40), "3 cm", new THREE.Vector3(-10, 0, 0));
 
+        // Cotas de ranuras (junto a la ranura izquierda)
+        // Tras rotación y posición: X=-30, Z=-12.5+10=-2.5
+        const slotCZ = -2.5;
+        const slotCX = -30;
+        const slotTop = 75.5;
+        // Largo de ranura (al lado)
+        addDim(new THREE.Vector3(slotCX + 2, slotTop, slotCZ - 2.75), new THREE.Vector3(slotCX + 2, slotTop, slotCZ + 2.75), "5.5 cm", new THREE.Vector3(1, 0, 0));
+        // Ancho de ranura (hacia faldón frontal)
+        addDim(new THREE.Vector3(slotCX - 0.75, slotTop, slotCZ - 4), new THREE.Vector3(slotCX + 0.75, slotTop, slotCZ - 4), "1.5 cm", new THREE.Vector3(0, 0, -1));
+        // Distancia desde borde frontal a ranura
+        addDim(new THREE.Vector3(slotCX, slotTop, -40), new THREE.Vector3(slotCX, slotTop, slotCZ - 2.75), "34.75 cm", new THREE.Vector3(-3, 0, 0));
+        // Distancia desde borde lateral izquierdo a ranura
+        addDim(new THREE.Vector3(-90, slotTop, slotCZ), new THREE.Vector3(slotCX - 0.75, slotTop, slotCZ), "60 cm", new THREE.Vector3(0, 2, 0));
+
         dimGroup.visible = false;
         dynamicDimGroup.visible = false;
 
